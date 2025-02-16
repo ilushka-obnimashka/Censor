@@ -3,3 +3,4 @@ venv/
 runs/
 .idea/
 .vscode/
+yolo*
