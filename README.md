@@ -6,7 +6,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-    https://github.com/ilushka-obnimashka/VideoCensor.git
+    git clone https://github.com/ilushka-obnimashka/VideoCensor.git
     cd VideoCensor
 ```
 2. Переключитесь на ветку proof-of-concept:
