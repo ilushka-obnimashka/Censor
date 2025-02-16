@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "videocensor"}]
+
 
 
 [build-system]
