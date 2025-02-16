@@ -31,9 +31,10 @@
 ▎PyCharm:
    1. Откройте настройки проекта (File -> Settings или Ctrl + Alt + S).
    2. Перейдите в раздел Project: <your_project_name> -> Python Interpreter. 
-   3. Нажмите на значок шестеренки и выберите Add.... 
-   4. Выберите Poetry Environment и укажите путь к вашему проекту. 
+   3. Выберите Add Interpretator -> Add Local Interpretator -> Select existing
+   4. Выберите Type: Poetry. 
    5. Нажмите OK, чтобы применить изменения.
+      (Подробнее https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html#add_local_interpreters)
 
 6. Запустите код
 
