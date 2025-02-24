@@ -3,7 +3,7 @@
 1. Клонируйте репозиторий:
 ```bash
     git clone https://github.com/ilushka-obnimashka/Censor.git
-    cd VideoCensor
+    cd Censor
 ```
 2. Переключитесь на нужную ветку proof-of-concept:
 ```bash
