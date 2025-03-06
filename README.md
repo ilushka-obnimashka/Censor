@@ -16,11 +16,11 @@
 4. Активируйте виртаульное окружение:
    * 1.1 Для Linux, macOS, Windows (WSL):
    ```bash
-   source myenv/bin/activate
+   source <name>/bin/activate
    ```
    * 1.1 Windows:
    ```bash
-   myenv\Scripts\activate
+   <name>\Scripts\activate
    ```
 
 > [!Note]
