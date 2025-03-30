@@ -2,7 +2,7 @@ import os
 import shutil
 
 
-def singelton(cls):
+def singleton(cls):
     instances = {}
 
     def wrapper(*args, **kwargs):
@@ -13,45 +13,46 @@ def singelton(cls):
     return wrapper
 
 
-@singelton
+@singleton
 class TempFilesManager:
-    """Менеджер для работы с временными файлами и директориями.
+    """
+    Manager for temporary files and directories.
 
-    Реализует паттерн Singleton. Автоматически отслеживает и удаляет созданные
-    временные файлы и директории при вызове cleanup().
+    Implements the Singleton pattern. Automatically tracks and deletes created
+    temporary files and directories when cleanup() is called.
 
-    Атрибуты:
-        temp_files (list): Список путей к временным файлам.
-        temp_dirs (list): Список путей к временным директориям.
+    :ivar temp_files: List of paths to temporary files.
+    :ivar temp_dirs: List of paths to temporary directories.
     """
 
     def __init__(self):
+        """
+        Initializes the temporary file manager.
+
+        Creates a temporary directory for storing temporary files.
+        """
         self.temp_files = []
         self.temp_dirs = []
         self.temp_dir = self.create_temp_dir("temp_files")
 
-    def create_temp_file(self, file_name):
-        """Создает именованный временный файл в временной директории.
+    def create_temp_file(self, file_name: str) -> str:
+        """
+        Creates a named temporary file in the temporary directory.
 
-        Args:
-            file_name (str): Имя файла.
-
-        Returns:
-            str: Путь к временному файлу.
+        :param file_name: The name of the file.
+        :return: The path to the temporary file.
         """
         file_path = os.path.join(self.temp_dir, file_name)
         open(file_path, 'w').close()
         self.temp_files.append(file_path)
         return file_path
 
-    def create_temp_dir(self, dir_name):
-        """Создает временную директорию.
+    def create_temp_dir(self, dir_name: str) -> str:
+        """
+        Creates a temporary directory.
 
-        Args:
-            dir_name (str): Имя директории.
-
-        Returns:
-            str: Путь к временной директории.
+        :param dir_name: The name of the directory.
+        :return: The path to the temporary directory.
         """
         dir_path = os.path.join(os.getcwd(), dir_name)
         try:
@@ -61,14 +62,27 @@ class TempFilesManager:
         self.temp_dirs.append(dir_path)
         return dir_path
 
-    def cleanup(self):
-        """Удаляет все зарегистрированные временные файлы и директории."""
+    def cleanup(self) -> None:
+        """
+        Deletes all registered temporary files and directories.
+
+        :raises Exception: If an error occurs while deleting the directory.
+        """
         try:
             if os.path.exists(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
         except Exception as e:
-            print(f"Ошибка удаления директории: {e}")
+            print(f"Error deleting directory: {e}")
 
-    def rm_file(self, file_name):
-        os.remove(os.path.join(self.temp_dir, file_name))
-        self.temp_files.remove(file_name)
+    def rm_file(self, file_name: str) -> None:
+        """
+        Deletes a temporary file from the temporary directory.
+
+        :param file_name: The name of the file to delete.
+        :raises FileNotFoundError: If the file is not found.
+        """
+        try:
+            os.remove(os.path.join(self.temp_dir, file_name))
+            self.temp_files.remove(os.path.join(self.temp_dir, file_name))
+        except ValueError:
+            print(f"File {file_name} not found in the list of temporary files.")
