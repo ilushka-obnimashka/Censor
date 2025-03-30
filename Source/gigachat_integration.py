@@ -5,9 +5,7 @@ from langchain_gigachat import GigaChat
 def setup_gigachat_client(auth_token: str) -> GigaChat:
     """
     Sets up the GigaChat client with secure settings.
-
     :param auth_token: The authentication token for the GigaChat API.
-    :type auth_token: str
     :return: Configured GigaChat client instance.
     """
     return GigaChat(
@@ -22,12 +20,11 @@ def setup_gigachat_client(auth_token: str) -> GigaChat:
 def prepare_profanity_detection_prompt(timestamps_words: list[dict[str, float]]) -> str:
     """
     Prepares a prompt for detecting profanity words.
-
     :param timestamps_words: A list of dictionaries containing word information and their timestamps.
     :return: A formatted text message for profanity detection.
     """
     words_str = "\n".join([
-        f"Слово: {word['word']}, Начало: {word['start']}, Конец: {word['end']}"
+        f"Word: {word['word']}, Start: {word['start']}, End: {word['end']}"
         for word in timestamps_words
     ])
 
@@ -59,7 +56,6 @@ def detect_profanity(client: GigaChat, timestamps_words: list[dict[str, float]])
     Detects profanity words using the GigaChat client.
 
     :param client: The configured GigaChat client instance.
-    :type client: GigaChat
     :param timestamps_words: A list of dictionaries containing word information and their timestamps.
     :return: A list of dictionaries with profanity words and their timestamps.
              Returns `None` if an error occurs during the request.
@@ -69,7 +65,7 @@ def detect_profanity(client: GigaChat, timestamps_words: list[dict[str, float]])
     print(prompt)
 
     messages = [
-        SystemMessage(content="Ты помощник, который точно определяет матерные слова"),
+        SystemMessage(content="Ты помощник, который точно определяет матерные слова."),
         HumanMessage(content=prompt)
     ]
 
@@ -77,14 +73,5 @@ def detect_profanity(client: GigaChat, timestamps_words: list[dict[str, float]])
         response = client.invoke(messages)
         return response.content[7:-3]
     except Exception as e:
-        print(f"Ошибка при запросе: {e}")
+        print(f"Error during request: {e}")
         return None
-
-
-def response2json():
-    """
-    Placeholder function for converting responses to JSON format.
-    This function is currently not implemented.
-    :raises NotImplementedError: If called before implementation.
-    """
-    raise NotImplementedError("This function is not yet implemented.")
