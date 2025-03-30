@@ -1,13 +1,15 @@
 import os
-import tempfile
+import shutil
 
 
 def singelton(cls):
     instances = {}
+
     def wrapper(*args, **kwargs):
         if cls not in instances.keys():
             instances[cls] = cls(*args, **kwargs)
         return instances[cls]
+
     return wrapper
 
 
@@ -26,40 +28,47 @@ class TempFilesManager:
     def __init__(self):
         self.temp_files = []
         self.temp_dirs = []
+        self.temp_dir = self.create_temp_dir("temp_files")
 
-    def create_temp_file(self, suffix=None, prefix=None):
-        """Создает именованный временный файл.
+    def create_temp_file(self, file_name):
+        """Создает именованный временный файл в временной директории.
 
         Args:
-            suffix (str, optional): Суффикс имени файла.
-            prefix (str, optional): Префикс имени файла.
+            file_name (str): Имя файла.
 
         Returns:
-            NamedTemporaryFile: Объект временного файла.
+            str: Путь к временному файлу.
         """
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix=prefix)
-        self.temp_files.append(temp_file.name)
-        return temp_file
+        file_path = os.path.join(self.temp_dir, file_name)
+        open(file_path, 'w').close()
+        self.temp_files.append(file_path)
+        return file_path
 
-    def create_temp_dir(self, suffix=None, prefix=None):
+    def create_temp_dir(self, dir_name):
         """Создает временную директорию.
 
         Args:
-            suffix (str, optional): Суффикс имени директории.
-            prefix (str, optional): Префикс имени директории.
+            dir_name (str): Имя директории.
 
         Returns:
-            TemporaryDirectory: Объект временной директории.
+            str: Путь к временной директории.
         """
-        temp_dir = tempfile.TemporaryDirectory(suffix=suffix, prefix=prefix)
-        self.temp_dirs.append(temp_dir.name)
-        return temp_dir
+        dir_path = os.path.join(os.getcwd(), dir_name)
+        try:
+            os.mkdir(dir_path)
+        except FileExistsError:
+            pass
+        self.temp_dirs.append(dir_path)
+        return dir_path
 
     def cleanup(self):
         """Удаляет все зарегистрированные временные файлы и директории."""
-        for file in self.temp_files:
-            if os.path.exists(file):
-                os.remove(file)
-        for dir in self.temp_dirs:
-            if os.path.exists(dir):
-                os.rmdir(dir)
+        try:
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+        except Exception as e:
+            print(f"Ошибка удаления директории: {e}")
+
+    def rm_file(self, file_name):
+        os.remove(os.path.join(self.temp_dir, file_name))
+        self.temp_files.remove(file_name)
