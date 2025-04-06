@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 from patched_yolo_infer import MakeCropsDetectThem, CombineDetections, visualize_results, auto_calculate_crop_values
+from collections import deque
+import time
 
 IMAGE_SIZE = 640 # All images are resized to this dimension before being fed into the model
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -40,9 +42,8 @@ def pixelation_box(img, x1, y1, x2, y2):
     img[y1:y2, x1:x2] = roi
 
 
-def process_image(image_path, output_path=None, show=False):
+def process_image(image, output_path=None, show=False):
     """Прогоняет изображение через модель, пикселизирует детектированные области и сохраняет результат."""
-    image = cv2.imread(image_path)
     results = MODEL(image, imgsz=(IMAGE_SIZE, IMAGE_SIZE))
 
     for box in results[0].boxes:
@@ -58,13 +59,17 @@ def process_image(image_path, output_path=None, show=False):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-def process_video(video_path, output_path=None, show=False):
+def process_video(cap, output_path=None, show=False):
     """Прогоняет видео через модель, пикселизирует детектированные области и сохраняет результат."""
-    cap = cv2.VideoCapture(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     frames = []
+
+    tracker_type = "CSRT"  # Можно попробовать KCF, MOSSE и другие
+    trackers = cv2.legacy.MultiTracker_create()
+    frame_count = 0
+    tracked_boxes = deque(maxlen=30)  # Храним последние 30 координат
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -77,13 +82,35 @@ def process_video(video_path, output_path=None, show=False):
             class_id = int(box.cls[0])
             draw_box(frame, x1, y1, x2, y2, class_id, results[0].names[class_id])
 
-        # annotated_frame = results[0].plot() # Обводка
-        frames.append(frame)
+        # if frame_count % 30 == 0:
+        #     # Запускаем детекцию каждые 30 кадров
+        #     result = patched_model(frame)
+        #     trackers = cv2.legacy.MultiTracker_create()
+        #
+        #     for i, box in enumerate(result.filtered_boxes):
+        #         x1, y1, x2, y2 = map(int, box)
+        #         class_id = int(result.filtered_classes_id[i])
+        #         draw_box(frame, x1, y1, x2, y2, class_id, result.filtered_classes_names[i])
+        #
+        #         tracker = cv2.legacy.TrackerCSRT_create()
+        #         trackers.add(tracker, frame, (x1, y1, x2 - x1, y2 - y1))
+        #
+        #     tracked_boxes.append(result.filtered_boxes)  # Сохраняем координаты
+        # else:
+        #     # Используем трекер между детекциями
+        #     success, boxes = trackers.update(frame)
+        #     for i, newbox in enumerate(boxes):
+        #         x, y, w, h = map(int, newbox)
+        #         draw_box(frame, x, y, x + w, y + h, class_id, "Tracked")
+        # frame_count += 1
 
         if show:
             cv2.imshow('YOLO Video', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
+        frames.append(frame)
+
 
     cap.release()
     cv2.destroyAllWindows()
@@ -96,7 +123,7 @@ def process_video(video_path, output_path=None, show=False):
 
 
 
-def patched_image(source):
+def patched_model(source):
     """Прогоняет изображение через модель с разбиением и сохраняет результат."""
     # Calculate the optimal crop size and overlap for an image
     shape_x, shape_y, overlap_x, overlap_y = auto_calculate_crop_values(
@@ -122,10 +149,9 @@ def patched_image(source):
     # Assuming result is an instance of the CombineDetections class
     return CombineDetections(element_crops, nms_threshold=0.25)
 
-def process_patched_video(video_path, output_path=None, show=False):
+def process_patched_video(cap, output_path=None, show=False):
     """Прогоняет видео с разбиением на патчи через модель,
      пикселизирует детектированные области и сохраняет результат."""
-    cap = cv2.VideoCapture(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -135,7 +161,7 @@ def process_patched_video(video_path, output_path=None, show=False):
         ret, frame = cap.read()
         if not ret:
             break
-        result = patched_image(frame)
+        result = patched_model(frame)
 
         i = 0
         for box in result.filtered_boxes:
@@ -144,7 +170,6 @@ def process_patched_video(video_path, output_path=None, show=False):
             draw_box(frame, x1, y1, x2, y2, class_id, result.filtered_classes_names[i])
             i+=1
 
-        # annotated_frame = results[0].plot() # Обводка
         frames.append(frame)
 
         if show:
@@ -165,8 +190,12 @@ def process_patched_video(video_path, output_path=None, show=False):
 
 
 def main():
-    # process_image("1.webp", show=True)
-    process_video('testvideo.mp4', show=True)
+    image = cv2.imread("temp/1.webp")
+    # process_image(image, show=True)
+    cap = cv2.VideoCapture('temp/testvideo.mp4')
+    start_time = time.time()
+    process_video(cap, show=True)
+    print(time.time() - start_time)
 
 if __name__ == "__main__":
     main()

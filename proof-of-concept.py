@@ -9,7 +9,7 @@ EPOCHS = 100 # Adjusting this value can affect training duration and model perfo
 FREEZE = 10 # Freezes the first N  layers of the model (1 - 24) or specified layers by index, if you use list ([0, 5, 23])
 isTRAIN = False
 DATASET = 'cigarette_dataset/data.yaml' # Path to your *.yaml file for dataset
-video_path = 'testvideo.mp4'
+video_path = 'temp/testvideo.mp4'
 
 def is_cuda_available():
     """
@@ -51,7 +51,7 @@ def pixelation_video(source, predicts):
 
     # Настройка VideoWriter
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Кодек MP4
-    out = cv2.VideoWriter('result.mp4', fourcc, fps, (frame_width, frame_height))
+    out = cv2.VideoWriter('temp/result.mp4', fourcc, fps, (frame_width, frame_height))
 
     frame_index = 0
     while cap.isOpened():
@@ -86,7 +86,7 @@ def pixelation_video(source, predicts):
     out.release()
     print(f"Применена визуальная цензура")
 
-    return cv2.VideoCapture('result.mp4')
+    return cv2.VideoCapture('temp/result.mp4')
 
 def crop_predict_image(source, model=YOLO('yolo11m.pt')):
     # Calculate the optimal crop size and overlap for an image
