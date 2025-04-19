@@ -6,10 +6,10 @@ BATCH_SIZE = 16 # Batch size, with three modes: set as an integer (16), auto mod
 EPOCHS = 100 # Adjusting this value can affect training duration and model performance
 FREEZE = 10 # Freezes the first N  layers of the model (1 - 24) or specified layers by index, if you use list ([0, 5, 23])
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-DATASET = 'cigarette_dataset/data.yaml' # Path to your *.yaml file for dataset
+DATASET = 'datasets/' # Path to your *.yaml file for dataset
 
 def main():
-    model = YOLO('../temp/yolo11m.pt')
+    model = YOLO('temp/yolo11m.pt')
     # Information from official source https://docs.ultralytics.com/ru/yolov5/tutorials/transfer_learning_with_frozen_layers/#freeze-backbone
     model.train(data=DATASET, epochs=EPOCHS, batch=BATCH_SIZE, imgsz=(IMAGE_SIZE, IMAGE_SIZE), device=DEVICE, freeze=FREEZE)
 
