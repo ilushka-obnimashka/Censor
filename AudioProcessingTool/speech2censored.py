@@ -5,11 +5,11 @@ import os
 import click
 from pydub import AudioSegment
 
-from Source.audio2text_timestamps import get_word_timestamps_vosk
-from Source.gigachat_integration import setup_gigachat_client, detect_profanity
-from Source.temp_file_manager import TempFilesManager
+from AudioProcessingTool.audio2text_timestamps import get_word_timestamps_vosk
+from AudioProcessingTool.gigachat_integration import setup_gigachat_client, detect_profanity
+from temp_file_manager import TempFilesManager
 
-model_path = "vosk-model-small-ru-0.22"
+model_path = "resources/vosk-model-small-ru-0.22"
 # Using a large model
 # model_path = "vosk-model-ru-0.42"
 
@@ -73,7 +73,7 @@ def main(input_file):
     client = setup_gigachat_client(AUTHORIZATION_KEY)
     result = json.loads(detect_profanity(client, timestamps))
     print(f"result: {result}")
-    censor_audio(result, input_file, "censor_sound.mp3")
+    censor_audio(result, input_file, "AudioProcessingTool/resources/censor_sound.mp3")
 
 
 if __name__ == "__main__":

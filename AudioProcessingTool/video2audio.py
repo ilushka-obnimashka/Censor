@@ -1,7 +1,7 @@
 from moviepy import VideoFileClip
 
-from Source.audio2text_timestamps import audio_format_transcoder
-from Source.temp_file_manager import TempFilesManager
+from AudioProcessingTool.audio2text_timestamps import audio_format_transcoder
+from temp_file_manager import TempFilesManager
 
 
 def video2audio(video_path: str) -> str:

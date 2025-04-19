@@ -6,7 +6,7 @@ import wave
 from pydub import AudioSegment
 from vosk import Model, KaldiRecognizer
 
-from Source.temp_file_manager import TempFilesManager
+from temp_file_manager import TempFilesManager
 
 
 def audio_format_transcoder(audio_path: str) -> str:
