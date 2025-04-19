@@ -6,7 +6,7 @@ BATCH_SIZE = 16 # Batch size, with three modes: set as an integer (16), auto mod
 EPOCHS = 100 # Adjusting this value can affect training duration and model performance
 FREEZE = 10 # Freezes the first N  layers of the model (1 - 24) or specified layers by index, if you use list ([0, 5, 23])
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-DATASET = 'datasets/' # Path to your *.yaml file for dataset
+DATASET = 'datasets/simvolika/data.yaml' # Path to your *.yaml file for dataset
 
 def main():
     model = YOLO('temp/yolo11m.pt')

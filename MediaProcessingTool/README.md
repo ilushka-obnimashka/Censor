@@ -54,6 +54,9 @@ lables = [
     "ANUS_COVERED",
     "FEMALE_BREAST_COVERED",
     "BUTTOCKS_COVERED",
+    
+    'lgbt',
+    'svastika'
 ]
 ```
 
