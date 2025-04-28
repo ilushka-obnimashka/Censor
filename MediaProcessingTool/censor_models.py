@@ -46,15 +46,6 @@ def nude(img):
     return parsed
 
 
-def alcohol(img):
-    """
-    Stub function for detecting alcohol in the image.
-
-    :param img: Input image.
-    """
-    pass  # To be implemented
-
-
 def extremism(img):
     """
     Detects extremist symbols in the given image using a trained YOLO model.
