@@ -5,7 +5,7 @@ from typing import Any, List, Tuple, Optional, Union
 import click
 import cv2
 
-import censore_models
+import censor_models
 
 ALL_MODELS: dict[str, list[str]] = {
     'cigarette': ["cigarette"],
@@ -101,15 +101,16 @@ def model(img: Any, models_to_apply: List[str]) -> List[dict[str, Any]]:
     results = []
 
     if 'cigarette' in models_to_apply:
-        results.extend(censore_models.cigarette(img))
+        results.extend(censor_models.cigarette(img))
     if 'nude' in models_to_apply:
-        results.extend(censore_models.nude(img))
+        results.extend(censor_models.nude(img))
     if 'alcohol' in models_to_apply:
-        results.extend(censore_models.alcohol(img))
+        results.extend(censor_models.alcohol(img))
     if 'extremism' in models_to_apply:
-        results.extend(censore_models.extremism(img))
+        results.extend(censor_models.extremism(img))
 
     return results
+
 
 def save_output(output: Union[List, any], output_path: str, fps: Optional[int] = None) -> None:
     """
@@ -128,6 +129,7 @@ def save_output(output: Union[List, any], output_path: str, fps: Optional[int] =
         out.release()
     else:  # image
         cv2.imwrite(output_path, output)
+
 
 def process_image(
         input_path: str,
@@ -288,13 +290,6 @@ def process_file(
         print(f"[ERROR] {e}")
 
 
-@click.group()
-def cli() -> None:
-    """Main CLI entry point."""
-    pass
-
-
-@cli.command(help="Process media with censorship.")
 @click.argument("input_path", type=click.Path(exists=True))
 @click.option(
     "--black-list", "-b", multiple=True, required=True,
@@ -306,7 +301,7 @@ def cli() -> None:
 )
 @click.option("--output-path", "-o", type=click.Path(), help="Output file path.")
 @click.option("--show", is_flag=True, help="Display processing result in real-time.", hidden=True)
-def parse(
+def main(
         input_path: str,
         output_path: Optional[str],
         black_list: Tuple[str, ...],
@@ -320,4 +315,4 @@ def parse(
 
 
 if __name__ == "__main__":
-    cli()
+    main()
