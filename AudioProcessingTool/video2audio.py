@@ -4,7 +4,7 @@ from AudioProcessingTool.audio2text_timestamps import audio_format_transcoder
 from temp_file_manager import TempFilesManager
 
 
-def video2audio(video_path: str) -> str:
+def extract_audio_from_video(video_path: str) -> str:
     """
     It extracts an audio track from a video file, converts it into a mono and sets the sampling frequency of 16khz, then
     saves in format .Wav
