@@ -5,11 +5,11 @@ from typing import Any, List, Tuple, Optional, Union
 import click
 import cv2
 
-import censor_models
+from plugin_manager import PluginManager
 
 ALL_MODELS: dict[str, list[str]] = {
-    'cigarette': ["cigarette"],
-    'nude': [
+    'cigarette_detector': ["cigarette"],
+    'nude_detector': [
         "FEMALE_GENITALIA_COVERED",
         "FACE_FEMALE",
         "BUTTOCKS_EXPOSED",
@@ -29,11 +29,16 @@ ALL_MODELS: dict[str, list[str]] = {
         "FEMALE_BREAST_COVERED",
         "BUTTOCKS_COVERED"
     ],
-    'extremism': [
+    'extremism_detector': [
         'lgbt',
         'svastika'
     ]
 }
+
+PLUGIN_MANAGER = PluginManager()
+PLUGIN_MANAGER.load_plugins()
+
+print(PLUGIN_MANAGER._detectors)
 
 
 def get_color(class_name: str) -> Tuple[int, int, int]:
@@ -99,16 +104,15 @@ def model(img: Any, models_to_apply: List[str]) -> List[dict[str, Any]]:
     :return: List of detection results.
     """
     results = []
-
-    if 'cigarette' in models_to_apply:
-        results.extend(censor_models.cigarette(img))
-    if 'nude' in models_to_apply:
-        results.extend(censor_models.nude(img))
-    if 'alcohol' in models_to_apply:
-        results.extend(censor_models.alcohol(img))
-    if 'extremism' in models_to_apply:
-        results.extend(censor_models.extremism(img))
-
+    for model in models_to_apply:
+        if model not in ALL_MODELS.keys():
+            print(f"\033[93mWarning: Unknown model category '{model}'\033[0m")
+            continue
+        try:
+            detector = PLUGIN_MANAGER.get_detector(model)
+            results.extend(detector.detect(img))
+        except ValueError as e:
+            print(f"Warning: {e}")
     return results
 
 
@@ -290,6 +294,7 @@ def process_file(
         print(f"[ERROR] {e}")
 
 
+@click.command()
 @click.argument("input_path", type=click.Path(exists=True))
 @click.option(
     "--black-list", "-b", multiple=True, required=True,

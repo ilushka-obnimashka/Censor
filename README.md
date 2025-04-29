@@ -100,7 +100,7 @@ python resources/speech2censored.py audio_example.wav
 ### 🔧 Подготовка
 1. Перейди в директорию:
 ```bash
-cd MediaProcessingTool
+cd VisualProcessingTool
 ```
 2. Распакуйте модели:
 ```bash
@@ -109,14 +109,14 @@ unzip models.zip
 
 ### ▶️ Пример обработки видео
 ```bash
-python MediaProcessingTool/models/detect_and_blur.py \
+python VisualProcessingTool/models/detect_and_blur.py \
   parse input.mp4 \
   --black-list cigarette --black-list MALE_GENITALIA_EXPOSED \
   --pixelation \
   --output-path output.mp4
 ```
 👉 Получишь файл `output.mp4` с пикселизированными нежелательными обьектами.  
-📄 Поддерживаемые классы и детали в [Media README](MediaProcessingTool/README.md)
+📄 Поддерживаемые классы и детали в [Media README](VisualProcessingTool/README.md)
 
 ---
 
