@@ -1,15 +1,18 @@
 import mimetypes
 import random
 from typing import Any, List, Tuple, Optional, Union
+import os
 
 import click
 import cv2
 
 from plugin_manager import PluginManager
+from processes import process_image, process_video, process_audio
+from video_audio_tools import *
 
 ALL_MODELS: dict[str, list[str]] = {
-    'cigarette_detector': ["cigarette"],
-    'nude_detector': [
+    "cigarette_detector": ["cigarette"],
+    "nude_detector": [
         "FEMALE_GENITALIA_COVERED",
         "FACE_FEMALE",
         "BUTTOCKS_EXPOSED",
@@ -29,17 +32,17 @@ ALL_MODELS: dict[str, list[str]] = {
         "FEMALE_BREAST_COVERED",
         "BUTTOCKS_COVERED"
     ],
-    'extremism_detector': [
-        'lgbt',
-        'svastika'
-    ]
+    "extremism_detector": [
+        "lgbt",
+        "svastika"
+    ],
+    "bad_words_detector" : ["bad_words"]
 }
 
 PLUGIN_MANAGER = PluginManager()
 PLUGIN_MANAGER.load_plugins()
 
 print(PLUGIN_MANAGER._detectors)
-
 
 def get_color(class_name: str) -> Tuple[int, int, int]:
     """
@@ -134,117 +137,12 @@ def save_output(output: Union[List, any], output_path: str, fps: Optional[int] =
     else:  # image
         cv2.imwrite(output_path, output)
 
-
-def process_image(
-        input_path: str,
-        black_list: List[str],
-        models_to_apply: List[str],
-        pixelation: bool = True,
-) -> Optional[any]:
-    """
-    Process an image: detect and censor regions.
-
-    :param input_path: Path to input image.
-    :param black_list: List of class names to censor.
-    :param models_to_apply: Models to use.
-    :param pixelation: Apply pixelation if True, else draw boxes.
-    """
-    try:
-        image = cv2.imread(input_path)
-        if image is None:
-            raise ValueError(f"Failed to read image from {input_path}")
-        results = model(image, models_to_apply)
-
-        for result in results:
-            class_name = result['class']
-            x1, y1, x2, y2 = result['box']
-            if class_name in black_list:
-                if pixelation:
-                    pixelation_box(image, x1, y1, x2, y2)
-                else:
-                    draw_box(image, x1, y1, x2, y2, class_name)
-        return image
-    except Exception as e:
-        raise RuntimeError(f"Error processing image: {e}")
-
-
-def process_video(
-        input_path: str,
-        black_list: List[str],
-        models_to_apply: List[str],
-        pixelation: bool = True,
-) -> Optional[List[any]]:
-    """
-    Process a video: detect and censor regions in frames.
-
-    :param input_path: Path to input video.
-    :param black_list: List of class names to censor.
-    :param models_to_apply: Models to use.
-    :param pixelation: Apply pixelation if True, else draw boxes.
-    """
-    try:
-        cap = cv2.VideoCapture(input_path)
-        if not cap.isOpened():
-            raise ValueError(f"Failed to open video {input_path}")
-
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
-        frames = []
-
-        trackers = cv2.legacy.MultiTracker_create()
-        tracked_class_names = []
-        frame_count = 0
-        tracking_interval = max(fps // 2, 1)
-
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-
-            if frame_count % tracking_interval == 0:
-                results = model(frame, models_to_apply)
-                trackers = cv2.legacy.MultiTracker_create()
-                tracked_class_names.clear()
-
-                for result in results:
-                    class_name = result['class']
-                    x1, y1, x2, y2 = result['box']
-                    if class_name in black_list:
-                        if pixelation:
-                            pixelation_box(frame, x1, y1, x2, y2)
-                        else:
-                            draw_box(frame, x1, y1, x2, y2, class_name)
-
-                        tracker = cv2.legacy.TrackerCSRT_create()
-                        trackers.add(tracker, frame, (x1, y1, x2 - x1, y2 - y1))
-                        tracked_class_names.append(class_name)
-            else:
-                success, boxes = trackers.update(frame)
-                for i, newbox in enumerate(boxes):
-                    class_name = tracked_class_names[i] if i < len(tracked_class_names) else "Tracked"
-                    x, y, w, h = map(int, newbox)
-                    if class_name in black_list:
-                        if pixelation:
-                            pixelation_box(frame, x, y, x + w, y + h)
-                        else:
-                            draw_box(frame, x, y, x + w, y + h, class_name)
-
-            frames.append(frame)
-            frame_count += 1
-
-        cap.release()
-        return frames, fps
-    except Exception as e:
-        raise RuntimeError(f"Error processing video: {e}")
-        return None
-
-
 def process_file(
         input_path: str,
-        output_path: str,
         black_list: List[str],
         pixelation: bool = True,
         show: bool = False
-) -> None:
+) -> str:
     """
     Automatically process image or video file.
 
@@ -252,15 +150,17 @@ def process_file(
     :param output_path: Path to save the result.
     :param black_list: List of classes to censor.
     :param pixelation: Use pixelation instead of drawing boxes.
-    :param show: Show media while processing.
+    :return : censored output path
     """
+
+    orig_basename = os.path.splitext(os.path.basename(input_path))[0]
+    orig_format = os.path.splitext(os.path.basename(input_path))[1]
+    output_filename = f"censor_{orig_basename}{orig_format}"
+
     try:
         mime_type, _ = mimetypes.guess_type(input_path)
         if mime_type is None:
             raise ValueError("Unknown file format")
-
-        if output_path is None and not show:
-            raise ValueError("No output or display option specified")
 
         models_to_apply = [
             model for model, classes in ALL_MODELS.items()
@@ -269,26 +169,24 @@ def process_file(
 
         if mime_type.startswith('image'):
             result = process_image(input_path, black_list, models_to_apply, pixelation)
-            if show:
-                cv2.imshow("Processed Image", result)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
-            if output_path:
-                save_output(result, output_path)
+            save_output(result, output_filename)
 
         elif mime_type.startswith('video'):
             frames, fps = process_video(input_path, black_list, models_to_apply, pixelation)
-            if show:
-                for frame in frames:
-                    cv2.imshow("Processed Video", frame)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-                cv2.destroyAllWindows()
-            if output_path:
-                save_output(frames, output_path, fps)
+            save_output(frames, output_filename, fps)
+
+            if "bad_words_detector" in models_to_apply:
+                censor_audio_path = process_audio(input_path, True)
+                replace_audio_in_video(censor_audio_path, output_filename)
+
+        elif mime_type.startswith('audio'):
+            output_filename = process_audio(input_path, False)
+            TempFilesManager().cleanup()
 
         else:
             raise ValueError("File is not an image or video")
+
+        return output_filename
 
     except Exception as e:
         print(f"[ERROR] {e}")
