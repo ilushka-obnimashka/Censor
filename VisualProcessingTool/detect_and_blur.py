@@ -141,7 +141,6 @@ def process_file(
         input_path: str,
         black_list: List[str],
         pixelation: bool = True,
-        show: bool = False
 ) -> str:
     """
     Automatically process image or video file.
@@ -203,7 +202,6 @@ def process_file(
     help="Pixelate or draw bounding boxes."
 )
 @click.option("--output-path", "-o", type=click.Path(), help="Output file path.")
-@click.option("--show", is_flag=True, help="Display processing result in real-time.", hidden=True)
 def main(
         input_path: str,
         output_path: Optional[str],
