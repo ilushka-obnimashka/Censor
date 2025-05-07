@@ -1,5 +1,3 @@
-from typing import Any, List, Dict
-
 from nudenet import NudeDetector as OrigNudeDetector
 
 from .base_detector import *
