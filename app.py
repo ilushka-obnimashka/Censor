@@ -1,7 +1,13 @@
+import mimetypes
+
 import gradio as gr
+import requests
+
+from utils.minio_manager import minio_client
+
+API_URL = "http://localhost:8000/process/"
 
 CATEGORIES = {
-    # Основные категории
     "Сигареты": "cigarettes",
     "18+": {
         "Обнажённые ягодицы": "BUTTOCKS_EXPOSED",
@@ -9,7 +15,6 @@ CATEGORIES = {
         "Обнажённые женские гениталии": "FEMALE_GENITALIA_EXPOSED",
         "Обнажённая мужская грудь": "MALE_BREAST_EXPOSED",
         "Обнажённый анус": "ANUS_EXPOSED",
-        "Обнажённые ступни": "FEET_EXPOSED",
         "Обнажённые подмышки": "ARMPITS_EXPOSED",
         "Обнажённый живот": "BELLY_EXPOSED",
         "Обнажённые мужские гениталии": "MALE_GENITALIA_EXPOSED",
@@ -18,87 +23,112 @@ CATEGORIES = {
         "Символика ЛГБТ": "lgbt",
         "Свастика": "svastika",
     },
-    "Нецензурная лексика": "profanity"
+    "Нецензурная лексика": "bad_words"
 }
 
 
-def process_file(input_file, сигареты, is_18_plus, ягодицы, женская_грудь, женские_гениталии, мужская_грудь, анус,
-                 ступни, подмышки, живот, мужские_гениталии, экстремизм, лгбт, свастика, нецензурная_лексика):
-    # Здесь будет логика обработки
-    # Пока просто возвращаем тот же файл
-    return input_file
+def get_selected_categories():
+    selected = []
+
+    for main_cat, checkbox in checkboxes_main.items():
+        if checkbox.value:  # если основная категория включена
+            sub = CATEGORIES[main_cat]
+            if isinstance(sub, dict):  # есть подкатегории
+                for label, code in sub.items():
+                    if checkboxes_sub[main_cat][label].value:
+                        selected.append(code)
+            else:  # одиночная категория
+                selected.append(sub)
+
+    return selected
 
 
-with gr.Blocks() as demo:
-    gr.Markdown("## Обработка видео/аудио/фото с цензурой")
+def process_via_api(file_path, selected_classes, pixelation):
+    try:
+        key = minio_client.upload_file('uploads', file_path)
+
+        # API
+        response = requests.post(
+            API_URL,
+            json={
+                "key": key,
+                "black_list": selected_classes,
+                "pixelation": pixelation
+            }
+        )
+
+        if response.status_code != 200:
+            return None, None, f"Ошибка: {response.status_code} — {response.text}"
+
+        # Загрузка результата из MinIO
+        result_key = response.json()["result_key"]
+        result_path = minio_client.download_file('uploads', result_key, 'uploads')
+
+        # Определяем mime тип
+        mime_type, _ = mimetypes.guess_type(result_path)
+        if mime_type and mime_type.startswith("image"):
+            return result_path, None, "✅ Изображение готово"
+        elif mime_type and mime_type.startswith("video"):
+            return result_path, result_path, "✅ Видео готово"
+        else:
+            return result_path, None, "✅ Файл готов, но не удалось распознать тип"
+
+    except Exception as e:
+        return None, None, f"Ошибка: {str(e)}"
+
+
+custom_theme = gr.themes.Default(primary_hue="pink")
+
+with gr.Blocks(theme=custom_theme) as demo:
+    gr.Markdown("## ACMS Censor")
 
     with gr.Row():
-        input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
+        with gr.Column():
+            input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
+        with gr.Column():
+            output_view = gr.Video(label="Просмотр", interactive=False)
 
     with gr.Row():
-        сигареты = gr.Checkbox(label="Сигареты", value=True)
-        is_18_plus = gr.Checkbox(label="18+", value=False)
-        экстремизм = gr.Checkbox(label="Экстремизм", value=False)
-        нецензурная_лексика = gr.Checkbox(label="Нецензурная лексика", value=True)
-
-    # Блок для 18+
-    with gr.Column(visible=False) as plus_18_options:
-        gr.Markdown("**Выберите, что нужно цензурировать в 18+:**")
-        ягодицы = gr.Checkbox(label="Обнажённые ягодицы", value=True)
-        женская_грудь = gr.Checkbox(label="Обнажённая женская грудь", value=True)
-        женские_гениталии = gr.Checkbox(label="Обнажённые женские гениталии", value=True)
-        мужская_грудь = gr.Checkbox(label="Обнажённая мужская грудь", value=True)
-        анус = gr.Checkbox(label="Обнажённый анус", value=True)
-        ступни = gr.Checkbox(label="Обнажённые ступни", value=False)
-        подмышки = gr.Checkbox(label="Обнажённые подмышки", value=False)
-        живот = gr.Checkbox(label="Обнажённый живот", value=False)
-        мужские_гениталии = gr.Checkbox(label="Обнажённые мужские гениталии", value=True)
-
-    # Блок для экстремизма
-    with gr.Column(visible=False) as extremism_options:
-        gr.Markdown("**Выберите, что нужно цензурировать в экстремизме:**")
-        лгбт = gr.Checkbox(label="Символика ЛГБТ", value=False)
-        свастика = gr.Checkbox(label="Свастика", value=True)
-
-    with gr.Row():
+        pixelation_checkbox = gr.Checkbox(label="Пикселизация (иначе — боксы)", value=True)
         process_button = gr.Button("Обработать")
 
+    checkboxes_main = {}
+    checkboxes_sub = {}
+    sub_blocks = {}
+
+    # Основные чекбоксы
+    with gr.Row():
+        for cat in CATEGORIES:
+            checkboxes_main[cat] = gr.Checkbox(label=cat)
+
+    # Подкатегории
+    for cat, sub in CATEGORIES.items():
+        if isinstance(sub, dict) and len(sub) > 1:
+            checkboxes_sub[cat] = {}
+            with gr.Column(visible=False) as block:
+                gr.Markdown(f"Выберите, что нужно цензурировать в «{cat}»:")
+                for label in sub:
+                    checkboxes_sub[cat][label] = gr.Checkbox(label=label, value=True)
+            sub_blocks[cat] = block
+
+    # Выходной файл
     with gr.Row():
         output_file = gr.File(label="Скачайте результат")
 
-
-    # Функция отображения 18+ подпунктов
-    def toggle_18_plus(is_checked):
-        return gr.update(visible=is_checked)
-
-
-    # Функция отображения экстремизма подпунктов
-    def toggle_extremism(is_checked):
-        return gr.update(visible=is_checked)
-
-
-    # Привязываем логику показа блоков
-    is_18_plus.change(
-        toggle_18_plus,
-        inputs=[is_18_plus],
-        outputs=[plus_18_options]
-    )
-
-    экстремизм.change(
-        toggle_extremism,
-        inputs=[экстремизм],
-        outputs=[extremism_options]
-    )
+    # Функции отображения подблоков
+    for cat in sub_blocks:
+        checkboxes_main[cat].change(
+            lambda checked: gr.update(visible=checked),
+            inputs=checkboxes_main[cat],
+            outputs=sub_blocks[cat]
+        )
 
     process_button.click(
-        process_file,
-        inputs=[
-            input_file, сигареты, is_18_plus,
-            ягодицы, женская_грудь, женские_гениталии, мужская_грудь, анус, ступни, подмышки, живот, мужские_гениталии,
-            экстремизм, лгбт, свастика,
-            нецензурная_лексика
-        ],
-        outputs=[output_file]
+        fn=lambda file, pixel, *args: process_via_api(file.name, get_selected_categories(), pixel),
+        inputs=[input_file, pixelation_checkbox] + list(checkboxes_main.values()) + [cb for group in
+                                                                                     checkboxes_sub.values() for cb in
+                                                                                     group.values()],
+        outputs=[output_file, output_view, gr.Textbox(label="Статус")]
     )
 
 demo.launch()

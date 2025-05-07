@@ -1,11 +1,12 @@
 from ultralytics import YOLO
+import os
 
 from .base_detector import *
 
 
 class CigaretteDetector(BaseDetector):
     def __init__(self, device: str = 'cuda'):
-        super().__init__('models/cigarette.pt', device)
+        super().__init__(os.path.abspath('models/cigarette.pt'), device)
         self.model = YOLO(self.model_path)
 
     def detect(self, img: Any) -> List[Dict[str, Any]]:

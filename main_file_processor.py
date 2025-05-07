@@ -37,7 +37,6 @@ def process_file(
     Automatically process image or video file.
 
     :param input_path: Path to media file.
-    :param output_path: Path to save the result.
     :param black_list: List of classes to censor.
     :param pixelation: Use pixelation instead of drawing boxes.
     :return : censored output path
@@ -45,7 +44,7 @@ def process_file(
 
     orig_basename = os.path.splitext(os.path.basename(input_path))[0]
     orig_format = os.path.splitext(os.path.basename(input_path))[1]
-    output_filename = f"censor_{orig_basename}{orig_format}"
+    output_filename = os.path.join(os.path.dirname(input_path), f"censor_{orig_basename}{orig_format}")
 
     try:
         mime_type, _ = mimetypes.guess_type(input_path)

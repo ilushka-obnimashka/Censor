@@ -10,7 +10,7 @@ from main_file_processor import process_file
 @click.command()
 @click.argument("input_path", type=click.Path(exists=True))
 @click.option(
-    "--black-list", "-b", multiple=True, required=True,
+    "--black-list", "-b", multiple=True, default=None,
     help="Classes to censor (e.g. --black-list cigarette --black-list MALE_GENITALIA_EXPOSED)"
 )
 @click.option(
