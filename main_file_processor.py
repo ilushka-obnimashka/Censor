@@ -73,13 +73,14 @@ def process_file(
                 censor_audio_path = process_audio(input_path, True)
                 add_audio_to_video(censor_audio_path, output_filename)
                 os.remove(censor_audio_path)
-                TempFilesManager.cleanup()
 
         elif mime_type.startswith('audio'):
             output_filename = process_audio(input_path, False)
 
         else:
             raise ValueError("File is not an image or video")
+
+        TempFilesManager().cleanup()
 
         return output_filename
 
