@@ -17,7 +17,9 @@ def audio_format_transcoder(audio_path: str) -> str:
     :return: the path to a converted temporary file in WAV format.
     :raises RuntimeError: if the conversion has failed.
     """
-    output_path = TempFilesManager().create_temp_file("temp.wav")
+
+    orig_name = os.path.splitext(os.path.basename(audio_path))[0]
+    output_path = TempFilesManager().create_temp_file(f"{orig_name}_vosk.wav")
 
     try:
         audio = AudioSegment.from_file(audio_path)
@@ -39,34 +41,28 @@ def audio_format_transcoder(audio_path: str) -> str:
         raise RuntimeError(f"AudioConversionError: {str(e)}")
 
 
-def extract_audio_for_vosk(video_path: str) -> str:
+def extract_audio(video_path: str) -> str:
     """
-    Извлекает аудио из видео, конвертирует в моно WAV с частотой 16 кГц,
-    возвращает путь к аудиофайлу, готовому для Vosk.
+    Извлекает аудио из видео
+    возвращает путь к аудиофайлу.
     """
     orig_basename = os.path.splitext(os.path.basename(video_path))[0]
-    vosk_audio_path = TempFilesManager().create_temp_file(f"{orig_basename}.wav")
-    temp_audio_path = TempFilesManager().create_temp_file("temp_extracted_audio.wav")
+    orig_audio_path = TempFilesManager().create_temp_file(f"{orig_basename}.wav")
 
     with VideoFileClip(video_path) as video_clip:
-        video_clip.audio.write_audiofile(temp_audio_path, codec='pcm_s16le')
+        video_clip.audio.write_audiofile(orig_audio_path, codec='pcm_s16le')
 
-    audio = AudioSegment.from_file(temp_audio_path)
-    audio = audio.set_frame_rate(16000).set_channels(1)
-
-    audio.export(vosk_audio_path, format="wav")
-
-    return vosk_audio_path
+    return orig_audio_path
 
 
-def add_audio_to_video(audio_path: str, video_path: str) -> None:
+def add_audio_to_video(audio_path: str, video_path: str, output_path: str) -> None:
     """
-    Заменяет или добавляет аудио в видеофайл, сохраняя исходный путь.
-    Работает даже если в видео изначально нет аудиодорожки.
-    """
+    Добавляет или заменяет аудио в видеоролике и сохраняет результат в output_path.
 
-    temp_output = f"temp_{video_path}" # создали временный файл, который потом будет перемещен
-    TempFilesManager().create_temp_file(temp_output)
+    :param audio_path: Путь к аудиофайлу (mp3, wav и т.п.)
+    :param video_path: Путь к исходному видеофайлу
+    :param output_path: Путь, по которому сохранить финальный файл с аудио
+    """
 
     try:
         video = VideoFileClip(video_path)
@@ -75,7 +71,7 @@ def add_audio_to_video(audio_path: str, video_path: str) -> None:
         final_clip = video.set_audio(audio)
 
         final_clip.write_videofile(
-            temp_output,
+            output_path,
             codec='libx264',
             audio_codec='aac',
             threads=4,
@@ -85,10 +81,6 @@ def add_audio_to_video(audio_path: str, video_path: str) -> None:
         video.close()
         audio.close()
 
-        os.replace(temp_output, video_path)
-
     except Exception as e:
-        if os.path.exists(temp_output):
-            os.remove(temp_output)
         raise RuntimeError(f"Ошибка замены аудио: {str(e)}")
 

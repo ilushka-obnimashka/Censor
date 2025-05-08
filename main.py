@@ -5,6 +5,7 @@ from typing import Tuple
 import click
 
 from main_file_processor import process_file
+from utils import TempFilesManager
 
 
 @click.command()
@@ -27,6 +28,9 @@ def main(
     """
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     print(f"Censoring end {process_file(input_path, list(black_list), pixelation)}")
+
+    # Очистка временных файлов
+    TempFilesManager().cleanup()
 
 
 if __name__ == "__main__":

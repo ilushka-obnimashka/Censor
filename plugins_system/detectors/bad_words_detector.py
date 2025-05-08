@@ -11,6 +11,7 @@ from vosk import Model, KaldiRecognizer
 from .base_detector import *
 
 from utils.video_audio_tools import audio_format_transcoder
+from utils.temp_file_manager import TempFilesManager
 
 class BadWordsDetector(BaseDetector):
     def __init__(self, device: str = 'cuda'):
@@ -157,9 +158,8 @@ class BadWordsDetector(BaseDetector):
         :param censor_sound: path to censor sound.
         :return output_filename : path to the censorned audio.
         """
-        orig_basename = os.path.splitext(os.path.basename(orig_audio_path))[0]
-        orig_format = os.path.splitext(os.path.basename(orig_audio_path))[1]
-        output_filename = f"censor_{orig_basename}{orig_format}"
+        orig_name, orig_format  = os.path.splitext(os.path.basename(orig_audio_path))
+        output_filename = TempFilesManager().create_temp_file(f"{orig_name}_censor{orig_format}")
 
         orig_audio = AudioSegment.from_file(orig_audio_path)
 

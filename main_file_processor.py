@@ -5,9 +5,9 @@ from typing import List, Optional, Union
 import cv2
 
 from processing import process_image, process_video, process_audio
-from utils import TempFilesManager
 from models_config import ALL_MODELS
-from utils import add_audio_to_video
+from utils import add_audio_to_video, extract_audio
+from utils.temp_file_manager import TempFilesManager
 
 
 def save_output(output: Union[List, any], output_path: str, fps: Optional[int] = None) -> None:
@@ -42,9 +42,8 @@ def process_file(
     :return : censored output path
     """
 
-    orig_basename = os.path.splitext(os.path.basename(input_path))[0]
-    orig_format = os.path.splitext(os.path.basename(input_path))[1]
-    output_filename = os.path.join(os.path.dirname(input_path), f"censor_{orig_basename}{orig_format}")
+    orig_name, orig_format = os.path.splitext(os.path.basename(input_path))
+    output_filename = os.path.join(os.path.dirname(input_path), f"{orig_name}_censor{orig_format}")
 
     try:
         mime_type, _ = mimetypes.guess_type(input_path)
@@ -61,25 +60,29 @@ def process_file(
             black_list = [value for values in ALL_MODELS.values() for value in values]
 
         if mime_type.startswith('image'):
+            if "bad_words_detector" in models_to_apply:
+                models_to_apply = [m for m in models_to_apply if m != "bad_words_detector"]
+
             result = process_image(input_path, black_list, models_to_apply, pixelation)
             save_output(result, output_filename)
 
         elif mime_type.startswith('video'):
             frames, fps = process_video(input_path, black_list, models_to_apply, pixelation)
-            save_output(frames, output_filename, fps)
+            temp_output_filename = TempFilesManager().create_temp_file(f"{orig_name}_censor_video{orig_format}")
+            save_output(frames, temp_output_filename, fps)
 
+            audio_path = extract_audio(input_path)
             if "bad_words_detector" in models_to_apply:
-                censor_audio_path = process_audio(input_path, True)
-                add_audio_to_video(censor_audio_path, output_filename)
-                os.remove(censor_audio_path)
+                audio_path = process_audio(audio_path)
+
+            add_audio_to_video(audio_path, temp_output_filename, output_filename)
 
         elif mime_type.startswith('audio'):
-            output_filename = process_audio(input_path, False)
+            audio_path = process_audio(input_path)
+            os.replace(audio_path, output_filename)
 
         else:
             raise ValueError("File is not an image or video")
-
-        TempFilesManager().cleanup()
 
         return output_filename
 

@@ -8,7 +8,7 @@ from utils.minio_manager import minio_client
 API_URL = "http://localhost:8000/process/"
 
 CATEGORIES = {
-    "Сигареты": "cigarettes",
+    "Сигареты": "cigarette",
     "18+": {
         "Обнажённые ягодицы": "BUTTOCKS_EXPOSED",
         "Обнажённая женская грудь": "FEMALE_BREAST_EXPOSED",
@@ -46,6 +46,7 @@ def get_selected_categories():
 def process_via_api(file_path, selected_classes, pixelation):
     try:
         key = minio_client.upload_file('uploads', file_path)
+        print(selected_classes)
 
         # API
         response = requests.post(
@@ -58,37 +59,66 @@ def process_via_api(file_path, selected_classes, pixelation):
         )
 
         if response.status_code != 200:
-            return None, None, f"Ошибка: {response.status_code} — {response.text}"
+            return None, f"Ошибка: {response.status_code} — {response.text}"
 
         # Загрузка результата из MinIO
         result_key = response.json()["result_key"]
-        result_path = minio_client.download_file('uploads', result_key, 'uploads')
+        result_path = minio_client.download_file('uploads', result_key, 'result')
 
-        # Определяем mime тип
-        mime_type, _ = mimetypes.guess_type(result_path)
-        if mime_type and mime_type.startswith("image"):
-            return result_path, None, "✅ Изображение готово"
-        elif mime_type and mime_type.startswith("video"):
-            return result_path, result_path, "✅ Видео готово"
-        else:
-            return result_path, None, "✅ Файл готов, но не удалось распознать тип"
+        # Удаляем из minio
+
+        return gr.update(value=result_path, visible=True), "Файл обработан!"
 
     except Exception as e:
-        return None, None, f"Ошибка: {str(e)}"
+        return None, f"Ошибка: {str(e)}"
+
+def update_preview(file_path):
+    try:
+        if file_path is None:
+            return (
+                gr.update(visible=False),  # output_file
+                gr.update(value=None, visible=False),  # video
+                gr.update(value=None, visible=False),  # image
+                gr.update(value=None, visible=False),  # audio
+                gr.update(value="wait...", visible=True)
+            )
+
+        show_video = gr.update(value=None, visible=False)
+        show_image = gr.update(value=None, visible=False)
+        show_audio = gr.update(value=None, visible=False)
+
+        # Определяем mime тип
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if mime_type:
+            if mime_type.startswith("video"):
+                show_video = gr.update(value=file_path, visible=True)
+            elif mime_type.startswith("image"):
+                show_image = gr.update(value=file_path, visible=True)
+            elif mime_type.startswith("audio"):
+                show_audio = gr.update(value=file_path, visible=True)
+        return file_path, show_video, show_image, show_audio, gr.update(visible=False)
+
+    except Exception as e:
+        return None, None, None, None, None
+
 
 
 custom_theme = gr.themes.Default(primary_hue="pink")
 
 with gr.Blocks(theme=custom_theme) as demo:
-    gr.Markdown("## ACMS Censor")
+    gr.Markdown("## ACMS Censor <sub>v1.0.0-alpha</sub>")
 
-    with gr.Row():
+    with gr.Row(equal_height=True):
         with gr.Column():
             input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
+            output_file = gr.File(label="Скачайте результат", visible=False)
         with gr.Column():
-            output_view = gr.Video(label="Просмотр", interactive=False)
+            output_view_video = gr.Video(label="Просмотр", visible=False)
+            output_view_image = gr.Image(label="Просмотр", visible=False)
+            output_view_audio = gr.Audio(label="Прослушивание", visible=False)
+            status_text = gr.Textbox(label="Статус", value="wait...", visible=True)
 
-    with gr.Row():
+    with gr.Row(equal_height=True):
         pixelation_checkbox = gr.Checkbox(label="Пикселизация (иначе — боксы)", value=True)
         process_button = gr.Button("Обработать")
 
@@ -111,10 +141,6 @@ with gr.Blocks(theme=custom_theme) as demo:
                     checkboxes_sub[cat][label] = gr.Checkbox(label=label, value=True)
             sub_blocks[cat] = block
 
-    # Выходной файл
-    with gr.Row():
-        output_file = gr.File(label="Скачайте результат")
-
     # Функции отображения подблоков
     for cat in sub_blocks:
         checkboxes_main[cat].change(
@@ -125,10 +151,22 @@ with gr.Blocks(theme=custom_theme) as demo:
 
     process_button.click(
         fn=lambda file, pixel, *args: process_via_api(file.name, get_selected_categories(), pixel),
-        inputs=[input_file, pixelation_checkbox] + list(checkboxes_main.values()) + [cb for group in
-                                                                                     checkboxes_sub.values() for cb in
-                                                                                     group.values()],
-        outputs=[output_file, output_view, gr.Textbox(label="Статус")]
+        inputs=[input_file, pixelation_checkbox] +
+               list(checkboxes_main.values()) +
+               [cb for group in checkboxes_sub.values() for cb in group.values()],
+        outputs=[output_file, status_text]
+    )
+
+    output_file.change(
+        fn=update_preview,
+        inputs=output_file,
+        outputs=[
+            output_file,
+            output_view_video,
+            output_view_image,
+            output_view_audio,
+            status_text
+        ]
     )
 
 demo.launch()
