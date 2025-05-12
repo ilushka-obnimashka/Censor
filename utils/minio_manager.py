@@ -111,8 +111,8 @@ class MinIOClient:
 
 
 minio_client = MinIOClient(
-    endpoint=os.environ.get("MINIO_ENDPOINT"),
-    access_key=os.environ.get("MINIO_ACCESS_KEY"),
-    secret_key=os.environ.get("MINIO_SECRET_KEY"),
-    secure= True if os.environ.get("MINIO_SECURE", "false").lower() == "true" else False
+    endpoint= os.getenv("MINIO_ENDPOINT"),
+    access_key= os.getenv("MINIO_ACCESS_KEY"),
+    secret_key= os.getenv("MINIO_SECRET_KEY"),
+    secure= True if os.getenv("MINIO_SECURE", "false").lower() == "true" else False
 )
