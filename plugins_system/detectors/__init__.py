@@ -4,9 +4,4 @@ __all__ = [
     "extremism_detector",
     "nude_detector",
     "bad_words_detector",
-    "BaseDetector",
-    "BadWordsDetector",
-    "NudeDetector",
-    "CigaretteDetector",
-    "ExtremismDetector",
 ]

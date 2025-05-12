@@ -9,8 +9,7 @@ from langchain_gigachat import GigaChat
 from pydub import AudioSegment
 from vosk import Model, KaldiRecognizer
 
-from utils.temp_file_manager import TempFilesManager
-from utils.video_audio_tools import audio_format_transcoder
+from utils import TempFilesManager, audio_format_transcoder
 from .base_detector import *
 
 

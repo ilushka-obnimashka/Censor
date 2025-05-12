@@ -5,10 +5,10 @@ from typing import List, Optional, Union
 
 import cv2
 
-from models_config import ALL_MODELS
 from processing import process_image, process_video, process_audio
-from utils import add_audio_to_video, extract_audio
-from utils.temp_file_manager import TempFilesManager
+from utils import TempFilesManager, add_audio_to_video
+from models_config import ALL_MODELS
+
 
 
 def save_output(output: Union[List, any], output_path: str, fps: Optional[int] = None) -> None:

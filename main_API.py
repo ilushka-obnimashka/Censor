@@ -7,7 +7,7 @@ import uvicorn
 
 from main_file_processor import process_file
 from utils import TempFilesManager
-from utils.minio_manager import minio_client
+from utils import minio_client
 
 app = FastAPI()
 
