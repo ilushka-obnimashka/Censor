@@ -1,7 +1,7 @@
 import contextlib
 import os
+import traceback
 import wave
-from time import sleep
 
 from moviepy.editor import VideoFileClip, AudioFileClip
 from pydub import AudioSegment
@@ -38,7 +38,7 @@ def audio_format_transcoder(audio_path: str) -> str:
     except Exception as e:
         if os.path.exists(output_path):
             os.remove(output_path)
-        raise RuntimeError(f"AudioConversionError: {str(e)}")
+        raise RuntimeError(f"AudioConversionError: {traceback.format_exc()}")
 
 
 def extract_audio(video_path: str) -> str:
@@ -82,5 +82,4 @@ def add_audio_to_video(audio_path: str, video_path: str, output_path: str) -> No
         audio.close()
 
     except Exception as e:
-        raise RuntimeError(f"Ошибка замены аудио: {str(e)}")
-
+        raise RuntimeError(f"Ошибка замены аудио: {traceback.format_exc()}")

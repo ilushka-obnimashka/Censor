@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional
 
 from .model import model
@@ -13,4 +14,4 @@ def process_audio(
         censored_audio_path = model(input_path, ['bad_words_detector'])
         return ''.join(censored_audio_path)
     except Exception as e:
-        raise RuntimeError(f"Error processing audio: {e}")
+        raise RuntimeError(f"Error processing audio: {traceback.format_exc()}")

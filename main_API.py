@@ -1,3 +1,4 @@
+import traceback
 from typing import List
 
 from fastapi import FastAPI, HTTPException
@@ -34,4 +35,4 @@ async def process_media(request: ProcessRequest):
         return {"result_key": result_key}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(traceback.format_exc()))

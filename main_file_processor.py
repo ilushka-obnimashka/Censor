@@ -1,11 +1,12 @@
 import mimetypes
 import os
+import traceback
 from typing import List, Optional, Union
 
 import cv2
 
-from processing import process_image, process_video, process_audio
 from models_config import ALL_MODELS
+from processing import process_image, process_video, process_audio
 from utils import add_audio_to_video, extract_audio
 from utils.temp_file_manager import TempFilesManager
 
@@ -27,6 +28,7 @@ def save_output(output: Union[List, any], output_path: str, fps: Optional[int] =
         out.release()
     else:  # image
         cv2.imwrite(output_path, output)
+
 
 def process_file(
         input_path: str,
@@ -87,4 +89,4 @@ def process_file(
         return output_filename
 
     except Exception as e:
-        print(f"[ERROR] {e}")
+        print(f"[ERROR] {traceback.format_exc()}")

@@ -1,6 +1,8 @@
 import os
 import shutil
 
+import traceback
+
 
 def singleton(cls):
     instances = {}
@@ -72,7 +74,7 @@ class TempFilesManager:
             if os.path.exists(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
         except Exception as e:
-            print(f"Error deleting directory: {e}")
+            print(f"Error deleting directory: {traceback.format_exc()}")
 
     def rm_file(self, file_name: str) -> None:
         """

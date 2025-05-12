@@ -1,6 +1,7 @@
 import json
 import math
 import os.path
+import traceback
 import wave
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -8,10 +9,10 @@ from langchain_gigachat import GigaChat
 from pydub import AudioSegment
 from vosk import Model, KaldiRecognizer
 
+from utils.temp_file_manager import TempFilesManager
+from utils.video_audio_tools import audio_format_transcoder
 from .base_detector import *
 
-from utils.video_audio_tools import audio_format_transcoder
-from utils.temp_file_manager import TempFilesManager
 
 class BadWordsDetector(BaseDetector):
     def __init__(self, device: str = 'cuda'):
@@ -20,7 +21,7 @@ class BadWordsDetector(BaseDetector):
         self.recognizer_ = KaldiRecognizer(self.model_, 16000)
         self.giga_client_ = self.setup_gigachat_client(os.environ.get("GIGA_CHAT_KEY"))
 
-    def detect (self, media: Any) -> List[Dict[str, Any]]:
+    def detect(self, media: Any) -> List[Dict[str, Any]]:
         """
         Detects In the Given Audio Using a Trained Vosk Model and Gigachat LLM API, obscene vocabulary.
 
@@ -31,7 +32,7 @@ class BadWordsDetector(BaseDetector):
         try:
             timestamps = self.get_word_timestamps_vosk(media)
         except Exception as e:
-            print(f"AudioError: {e}")
+            print(f"AudioError: {traceback.format_exc()}")
             exit(1)
 
         result = json.loads(self.detect_profanity(timestamps))
@@ -48,7 +49,8 @@ class BadWordsDetector(BaseDetector):
         try:
             correct_format_audio = audio_format_transcoder(audio_path)
         except RuntimeError as e:
-            raise RuntimeError(f"in get_word_timestamps_vosk(BadWordsDetector) Could not convert audio file: {str(e)}") from e
+            raise RuntimeError(
+                f"in get_word_timestamps_vosk(BadWordsDetector) Could not convert audio file: {traceback.format_exc()}") from e
 
         self.recognizer_.SetWords(True)
 
@@ -134,7 +136,7 @@ class BadWordsDetector(BaseDetector):
         """
         prompt = self.prepare_profanity_detection_prompt(timestamps_words)
 
-        #print(prompt)
+        # print(prompt)
 
         messages = [
             SystemMessage(content="Ты помощник, который точно определяет матерные слова."),
@@ -147,7 +149,7 @@ class BadWordsDetector(BaseDetector):
             return response.content
 
         except Exception as e:
-            print(f"Error during request: {e}")
+            print(f"Error during request: {traceback.format_exc()}")
             return None
 
     def censor_audio(self, profanity_timestamps: list[dict[str, str | float]], orig_audio_path, censor_sound) -> str:
@@ -158,7 +160,7 @@ class BadWordsDetector(BaseDetector):
         :param censor_sound: path to censor sound.
         :return output_filename : path to the censorned audio.
         """
-        orig_name, orig_format  = os.path.splitext(os.path.basename(orig_audio_path))
+        orig_name, orig_format = os.path.splitext(os.path.basename(orig_audio_path))
         output_filename = TempFilesManager().create_temp_file(f"{orig_name}_censor{orig_format}")
 
         orig_audio = AudioSegment.from_file(orig_audio_path)
@@ -170,7 +172,7 @@ class BadWordsDetector(BaseDetector):
         censor_sound = AudioSegment.from_file(censor_sound)
         censor_sound = (
             censor_sound
-            .set_sample_width(orig_audio.sample_width )
+            .set_sample_width(orig_audio.sample_width)
             .set_frame_rate(orig_audio.frame_rate)
             .set_channels(orig_audio.channels)
         )
@@ -198,7 +200,3 @@ class BadWordsDetector(BaseDetector):
         censored_audio.export(output_filename, format=orig_format[1:])
 
         return output_filename
-
-
-
-

@@ -1,8 +1,10 @@
+import traceback
 from typing import List, Optional
 
 import cv2
-from .model import model
+
 from utils import pixelation_box, draw_box
+from .model import model
 
 
 def process_image(
@@ -35,4 +37,4 @@ def process_image(
                     draw_box(image, x1, y1, x2, y2, class_name)
         return image
     except Exception as e:
-        raise RuntimeError(f"Error processing image: {e}")
+        raise RuntimeError(f"Error processing image: {traceback.format_exc()}")

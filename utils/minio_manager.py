@@ -1,6 +1,6 @@
 import os
-import uuid
 import re
+import uuid
 
 from minio import Minio
 from minio.error import S3Error

@@ -1,4 +1,5 @@
 import mimetypes
+import traceback
 
 import gradio as gr
 import requests
@@ -70,7 +71,8 @@ def process_via_api(file_path, selected_classes, pixelation):
         return gr.update(value=result_path, visible=True), "Файл обработан!"
 
     except Exception as e:
-        return None, f"Ошибка: {str(e)}"
+        return None, f"Ошибка: {traceback.format_exc()}"
+
 
 def update_preview(file_path):
     try:
@@ -99,8 +101,8 @@ def update_preview(file_path):
         return file_path, show_video, show_image, show_audio, gr.update(visible=False)
 
     except Exception as e:
+        print(f"update_preview: {traceback.format_exc()}")
         return None, None, None, None, None
-
 
 
 custom_theme = gr.themes.Default(primary_hue="pink")

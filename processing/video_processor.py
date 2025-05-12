@@ -1,8 +1,10 @@
+import traceback
 from typing import List, Optional
 
 import cv2
-from .model import model
+
 from utils import pixelation_box, draw_box
+from .model import model
 
 
 def process_video(
@@ -72,5 +74,6 @@ def process_video(
         cap.release()
         return frames, fps
     except Exception as e:
-        raise RuntimeError(f"Error processing video: {e}")
+        tb_str = traceback.format_exc()
+        raise RuntimeError(f"Error processing video:\n{tb_str}")
         return None
