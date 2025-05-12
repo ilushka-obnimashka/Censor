@@ -17,9 +17,9 @@ from .base_detector import *
 class BadWordsDetector(BaseDetector):
     def __init__(self, device: str = 'cuda'):
         super().__init__('models/vosk-model-small-ru-0.22', device)
-        self.model_ = Model(self.model_path)
-        self.recognizer_ = KaldiRecognizer(self.model_, 16000)
-        self.giga_client_ = self.setup_gigachat_client(os.environ.get("GIGA_CHAT_KEY"))
+        self.__model = Model(self.model_path)
+        self.__recognizer = KaldiRecognizer(self.__model, 16000)
+        self.__giga_client = self.setup_gigachat_client(os.environ.get("GIGA_CHAT_KEY"))
 
     def detect(self, media: Any) -> List[Dict[str, Any]]:
         """
@@ -52,7 +52,7 @@ class BadWordsDetector(BaseDetector):
             raise RuntimeError(
                 f"in get_word_timestamps_vosk(BadWordsDetector) Could not convert audio file: {traceback.format_exc()}") from e
 
-        self.recognizer_.SetWords(True)
+        self.__recognizer.SetWords(True)
 
         with wave.open(correct_format_audio, 'rb') as audio_file:
             results = []
@@ -60,11 +60,11 @@ class BadWordsDetector(BaseDetector):
                 data = audio_file.readframes(4000)
                 if len(data) == 0:
                     break
-                if self.recognizer_.AcceptWaveform(data):
-                    part_result = json.loads(self.recognizer_.Result())
+                if self.__recognizer.AcceptWaveform(data):
+                    part_result = json.loads(self.__recognizer.Result())
                     results.append(part_result)
 
-            final_result = json.loads(self.recognizer_.FinalResult())
+            final_result = json.loads(self.__recognizer.FinalResult())
             results.append(final_result)
 
         word_timestamps = []
@@ -144,7 +144,7 @@ class BadWordsDetector(BaseDetector):
         ]
 
         try:
-            response = self.giga_client_.invoke(messages)
+            response = self.__giga_client.invoke(messages)
             print(response.content)
             return response.content
 
