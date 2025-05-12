@@ -4,8 +4,8 @@ from .base_detector import *
 
 
 class ExtremismDetector(BaseDetector):
-    def __init__(self, device: str = 'cuda'):
-        super().__init__('models/extremism.pt', device)
+    def __init__(self):
+        super().__init__('models/extremism.pt')
         self.model = YOLO(self.model_path)
 
     def detect(self, img: Any) -> List[Dict[str, Any]]:

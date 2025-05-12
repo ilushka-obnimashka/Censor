@@ -5,7 +5,7 @@ from .base_detector import *
 
 
 class CigaretteDetector(BaseDetector):
-    def __init__(self, device: str = 'cuda'):
+    def __init__(self):
         super().__init__(os.path.abspath('models/cigarette.pt'), device)
         self.model = YOLO(self.model_path)
 
