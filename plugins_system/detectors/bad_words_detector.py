@@ -18,7 +18,7 @@ class BadWordsDetector(BaseDetector):
         super().__init__('models/vosk-model-small-ru-0.22', device)
         self.__model = Model(self.model_path)
         self.__recognizer = KaldiRecognizer(self.__model, 16000)
-        self.__giga_client = self.setup_gigachat_client(os.environ.get("GIGA_CHAT_KEY"))
+        self.__giga_client = self.__setup_gigachat_client(os.getenv("GIGA_CHAT_KEY"))
 
     def detect(self, media: Any) -> List[Dict[str, Any]]:
         """
@@ -29,16 +29,16 @@ class BadWordsDetector(BaseDetector):
         """
 
         try:
-            timestamps = self.get_word_timestamps_vosk(media)
+            timestamps = self.__get_word_timestamps_vosk(media)
         except Exception as e:
             print(f"AudioError: {traceback.format_exc()}")
             exit(1)
 
-        result = json.loads(self.detect_profanity(timestamps))
+        result = json.loads(self.__detect_profanity(timestamps))
 
-        return self.censor_audio(result, media, "models/censor_sound.mp3")
+        return self.__censor_audio(result, media, "models/censor_sound.mp3")
 
-    def get_word_timestamps_vosk(self, audio_path: str) -> list[dict[str, str | float]]:
+    def __get_word_timestamps_vosk(self, audio_path: str) -> list[dict[str, str | float]]:
         """
         Removes temporary marks of words from the audio file using the VOSK model.
 
@@ -78,7 +78,7 @@ class BadWordsDetector(BaseDetector):
 
         return word_timestamps
 
-    def setup_gigachat_client(self, auth_token: str) -> GigaChat:
+    def __setup_gigachat_client(self, auth_token: str) -> GigaChat:
         """
         Sets up the GigaChat client with secure settings.
         :param auth_token: The authentication token for the GigaChat API.
@@ -92,7 +92,7 @@ class BadWordsDetector(BaseDetector):
             scope="GIGACHAT_API_PERS"
         )
 
-    def prepare_profanity_detection_prompt(self, timestamps_words: list[dict[str, float]]) -> str:
+    def __prepare_profanity_detection_prompt(self, timestamps_words: list[dict[str, float]]) -> str:
         """
         Prepares a prompt for detecting profanity words.
         :param timestamps_words: A list of dictionaries containing word information and their timestamps.
@@ -125,7 +125,7 @@ class BadWordsDetector(BaseDetector):
     Если матерных слов нет, верни пустой список.
     """
 
-    def detect_profanity(self, timestamps_words: list[dict[str, float]]) -> list[dict[str, float]]:
+    def __detect_profanity(self, timestamps_words: list[dict[str, float]]) -> list[dict[str, float]]:
         """
         Detects profanity words using the GigaChat client.
 
@@ -133,7 +133,7 @@ class BadWordsDetector(BaseDetector):
         :return: A list of dictionaries with profanity words and their timestamps.
                  Returns `None` if an error occurs during the request.
         """
-        prompt = self.prepare_profanity_detection_prompt(timestamps_words)
+        prompt = self.__prepare_profanity_detection_prompt(timestamps_words)
 
         # print(prompt)
 
@@ -151,7 +151,7 @@ class BadWordsDetector(BaseDetector):
             print(f"Error during request: {traceback.format_exc()}")
             return None
 
-    def censor_audio(self, profanity_timestamps: list[dict[str, str | float]], orig_audio_path, censor_sound) -> str:
+    def __censor_audio(self, profanity_timestamps: list[dict[str, str | float]], orig_audio_path, censor_sound) -> str:
         """
         Censors profanity words in audio recordings.
         :param profanity_timestamps: list of profanity timestamps.
