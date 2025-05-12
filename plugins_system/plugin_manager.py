@@ -9,12 +9,12 @@ from plugins_system.detectors.base_detector import BaseDetector
 class PluginManager:
 
     def __init__(self, plugins_dir: str = "plugins_system/detectors"):
-        self.plugins_dir_ = Path(plugins_dir)
-        self._detectors: Dict[str, BaseDetector] = {}
+        self.__plugins_dir = Path(plugins_dir)
+        self.__detectors: Dict[str, BaseDetector] = {}
 
     def load_plugins(self):
         target_pattern = "*.py"
-        for file in self.plugins_dir_.glob(target_pattern):
+        for file in self.__plugins_dir.glob(target_pattern):
             plugin_name = os.path.splitext(os.path.basename(file))[0]
             if plugin_name.startswith("_"):
                 continue
@@ -28,9 +28,9 @@ class PluginManager:
                         attribute != BaseDetector
                 ):
                     plugin = plugin_name.lower()
-                    self._detectors[plugin] = attribute()
+                    self.__detectors[plugin] = attribute()
 
     def get_detector(self, plugin_name: str) -> BaseDetector:
-        if plugin_name not in self._detectors:
+        if plugin_name not in self.__detectors:
             raise Exception(f"Plugin '{plugin_name}' not found")
-        return self._detectors[plugin_name]
+        return self.__detectors[plugin_name]
