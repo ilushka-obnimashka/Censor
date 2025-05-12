@@ -110,10 +110,9 @@ class MinIOClient:
             return False
 
 
-# Создание единственного экземпляра клиента
 minio_client = MinIOClient(
-    endpoint=MINIO_ENDPOINT,
-    access_key=MINIO_ACCESS_KEY,
-    secret_key=MINIO_SECRET_KEY,
-    secure=MINIO_SECURE
+    endpoint=os.environ.get("MINIO_ENDPOINT"),
+    access_key=os.environ.get("MINIO_ACCESS_KEY"),
+    secret_key=os.environ.get("MINIO_SECRET_KEY"),
+    secure= True if os.environ.get("MINIO_SECURE", "false").lower() == "true" else False
 )
