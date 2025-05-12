@@ -1,4 +1,4 @@
-from .video_audio_tools import extract_audio, add_audio_to_video, audio_format_transcoder
+from .video_audio_tools import extract_audio, add_audio_to_video, audio_format_transcoder, extract_audio
 from .temp_file_manager import TempFilesManager
 from .drawing_utils import pixelation_box, draw_box, get_color
 from .minio_manager import minio_client
@@ -7,6 +7,7 @@ __all__ = [
     "extract_audio",
     "add_audio_to_video",
     "audio_format_transcoder",
+    "extract_audio",
     "TempFilesManager",
     "pixelation_box",
     "get_color",

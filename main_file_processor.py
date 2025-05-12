@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 import cv2
 
 from processing import process_image, process_video, process_audio
-from utils import TempFilesManager, add_audio_to_video
+from utils import TempFilesManager, add_audio_to_video, extract_audio
 from main_config import ALL_MODELS
 
 
