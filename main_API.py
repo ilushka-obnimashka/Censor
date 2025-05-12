@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import uvicorn
 
 from main_file_processor import process_file
 from utils import TempFilesManager
@@ -35,4 +36,8 @@ async def process_media(request: ProcessRequest):
         return {"result_key": result_key}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == "__main__":
+    uvicorn.run("main_API:app", host="0.0.0.0", port=8000, reload=True)
