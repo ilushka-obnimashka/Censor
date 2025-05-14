@@ -2,8 +2,8 @@ import traceback
 from typing import List, Optional
 
 import cv2
-
 from utils import pixelation_box, draw_box
+
 from .model import model
 
 

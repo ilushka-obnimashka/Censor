@@ -24,5 +24,5 @@ ALL_MODELS: dict[str, list[str]] = {
         "lgbt",
         "svastika"
     ],
-    "bad_words_detector" : ["bad_words"]
+    "bad_words_detector": ["bad_words"]
 }

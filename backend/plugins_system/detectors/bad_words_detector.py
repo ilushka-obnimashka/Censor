@@ -7,9 +7,9 @@ import wave
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_gigachat import GigaChat
 from pydub import AudioSegment
+from utils import TempFilesManager, audio_format_transcoder
 from vosk import Model, KaldiRecognizer
 
-from utils import TempFilesManager, audio_format_transcoder
 from .base_detector import *
 
 

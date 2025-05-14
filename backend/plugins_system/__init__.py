@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
 
-from .plugin_manager import PluginManager
-from .detectors.base_detector import BaseDetector
 from .detectors.bad_words_detector import BadWordsDetector
-from .detectors.nude_detector import NudeDetector
+from .detectors.base_detector import BaseDetector
 from .detectors.cigarette_detector import CigaretteDetector
 from .detectors.extremism_detector import ExtremismDetector
+from .detectors.nude_detector import NudeDetector
+from .plugin_manager import PluginManager
 
 __all__ = [
     'PluginManager',

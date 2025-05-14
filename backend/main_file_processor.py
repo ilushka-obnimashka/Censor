@@ -10,7 +10,6 @@ from utils import TempFilesManager, add_audio_to_video, extract_audio
 from backend_config import ALL_MODELS
 
 
-
 def save_output(output: Union[List, any], output_path: str, fps: Optional[int] = None) -> None:
     """
     Save processed image or video frames to a file.
