@@ -5,11 +5,9 @@ import uuid
 from minio import Minio
 from minio.error import S3Error
 
-# Параметры подключения
-MINIO_ENDPOINT = "localhost:9000"
-MINIO_ACCESS_KEY = "minio"
-MINIO_SECRET_KEY = "minio123"
-MINIO_SECURE = False  # True, если используешь https
+
+from dotenv import load_dotenv
+
 
 
 class MinIOClient:
@@ -109,7 +107,7 @@ class MinIOClient:
             print(f"Ошибка проверки существования файла: {err}")
             return False
 
-
+load_dotenv(".env")
 minio_client = MinIOClient(
     endpoint= os.getenv("MINIO_ENDPOINT"),
     access_key= os.getenv("MINIO_ACCESS_KEY"),

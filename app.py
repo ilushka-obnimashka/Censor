@@ -54,7 +54,7 @@ def process_via_api(file_path, selected_classes, pixelation):
         return gr.update(value=result_path, visible=True), "Файл обработан!"
 
     except Exception as e:
-        return None, f"Ошибка: {traceback.format_exc()}"
+        raise f"Ошибка: {traceback.format_exc()}"
 
 
 def update_preview(file_path):
