@@ -5,8 +5,8 @@ import traceback
 import gradio as gr
 import requests
 
-from utils import minio_client
 from frontend_config import CATEGORIES
+from utils import minio_client
 
 API_URL = os.getenv("API_URL")
 

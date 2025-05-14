@@ -1,8 +1,8 @@
 from typing import List
 
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import uvicorn
 from ultralytics.utils.checks import cuda_is_available
 
 from main_file_processor import process_file
@@ -21,7 +21,7 @@ class ProcessRequest(BaseModel):
 @app.post("/process/")
 async def process_media(request: ProcessRequest):
     try:
-        print (cuda_is_available())
+        print(cuda_is_available())
         bucket = "uploads"
         local_input_path = minio_client.download_file(bucket, request.key, "temp_files")
 
