@@ -2,7 +2,7 @@ FROM python:3.12-slim
 LABEL authors="ilushka-obnimashka, nikeperl"
 
 WORKDIR /backend
-COPY backend/ .
+COPY . .
 
 RUN pip install -r requirements.txt
 
