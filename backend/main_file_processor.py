@@ -7,7 +7,7 @@ import cv2
 
 from processing import process_image, process_video, process_audio
 from utils import TempFilesManager, add_audio_to_video, extract_audio
-from main_config import ALL_MODELS
+from backend_config import ALL_MODELS
 
 
 

@@ -5,7 +5,7 @@ from .base_detector import *
 
 class NudeDetector(BaseDetector):
     def __init__(self, device: str = 'cuda'):
-        super().__init__('models/nudenet640m.onnx', device)
+        super().__init__('backend/models/nudenet640m.onnx', device)
         self.model = OrigNudeDetector(model_path=self.model_path, inference_resolution=IMAGE_SIZE)
 
     def detect(self, img: Any) -> List[Dict[str, Any]]:

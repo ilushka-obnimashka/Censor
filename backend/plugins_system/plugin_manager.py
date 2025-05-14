@@ -8,7 +8,7 @@ from plugins_system.detectors.base_detector import BaseDetector
 
 class PluginManager:
 
-    def __init__(self, plugins_dir: str = "plugins_system/detectors"):
+    def __init__(self, plugins_dir: str = "backend/plugins_system/detectors"):
         self.__plugins_dir = Path(plugins_dir)
         self.__detectors: Dict[str, BaseDetector] = {}
 

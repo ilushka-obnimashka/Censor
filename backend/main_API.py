@@ -1,4 +1,3 @@
-import traceback
 from typing import List
 
 from fastapi import FastAPI, HTTPException

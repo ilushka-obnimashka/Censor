@@ -2,12 +2,9 @@ import os
 import re
 import uuid
 
+from dotenv import load_dotenv
 from minio import Minio
 from minio.error import S3Error
-
-
-from dotenv import load_dotenv
-
 
 
 class MinIOClient:
@@ -107,10 +104,11 @@ class MinIOClient:
             print(f"Ошибка проверки существования файла: {err}")
             return False
 
+
 load_dotenv(".env")
 minio_client = MinIOClient(
-    endpoint= os.getenv("MINIO_ENDPOINT"),
-    access_key= os.getenv("MINIO_ACCESS_KEY"),
-    secret_key= os.getenv("MINIO_SECRET_KEY"),
-    secure= True if os.getenv("MINIO_SECURE", "false").lower() == "true" else False
+    endpoint=os.getenv("MINIO_ENDPOINT"),
+    access_key=os.getenv("MINIO_ACCESS_KEY"),
+    secret_key=os.getenv("MINIO_SECRET_KEY"),
+    secure=True if os.getenv("MINIO_SECURE", "false").lower() == "true" else False
 )
