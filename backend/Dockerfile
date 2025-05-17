@@ -1,8 +1,8 @@
 FROM nvidia/cuda:12.9.0-base-ubuntu24.04
 LABEL authors="ilushka-obnimashka, nikeperl"
 
-# Установка Python 3 и pip
-RUN apt-get update && apt-get install -y python3 python3-pip
+# Установка Python 3 pip OpenGL ffmpeg
+RUN apt-get update && apt-get install -y python3 python3-pip libgl1 ffmpeg
 
 WORKDIR /backend
 COPY . .

@@ -22,10 +22,13 @@ services:
       MINIO_SECRET_KEY: 'minio123'
       MINIO_SECURE: 'False'
       GIGA_CHAT_KEY: 'MDZlMGU2NzItZTBiMC00YTBjLThmN2ItZGE5ZWM4MTE4MGFiOjFkYjA1MDVkLTVmMTgtNDZkOS1iMzI2LTJiOGFlN2U3MWViMQ=='
-    device_requests:
-      - driver: nvidia
-        count: 1
-        capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     ports:
       - '8000:8000'
 
