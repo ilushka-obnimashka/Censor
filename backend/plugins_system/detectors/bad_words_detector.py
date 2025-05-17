@@ -14,8 +14,8 @@ from .base_detector import *
 
 
 class BadWordsDetector(BaseDetector):
-    def __init__(self, device: str = 'cuda'):
-        super().__init__('backend/models/vosk-model-small-ru-0.22', device)
+    def __init__(self):
+        super().__init__('models/vosk-model-small-ru-0.22')
         self.__model = Model(self.model_path)
         self.__recognizer = KaldiRecognizer(self.__model, 16000)
         self.__giga_client = self.__setup_gigachat_client(os.getenv("GIGA_CHAT_KEY"))
@@ -36,7 +36,7 @@ class BadWordsDetector(BaseDetector):
 
         result = json.loads(self.__detect_profanity(timestamps))
 
-        return self.__censor_audio(result, media, "backend/models/censor_sound.mp3")
+        return self.__censor_audio(result, media, "models/censor_sound.mp3")
 
     def __get_word_timestamps_vosk(self, audio_path: str) -> list[dict[str, str | float]]:
         """

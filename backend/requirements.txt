@@ -15,7 +15,6 @@ fsspec==2025.3.2
 gigachat==0.1.39.post1
 langchain-core==0.3.49
 langchain-gigachat==0.3.8
-nudenet==3.4.2
 psutil==7.0.0
 pydub==0.25.1
 PyYAML==6.0.2

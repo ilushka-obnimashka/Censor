@@ -7,7 +7,7 @@ from .base_detector import *
 
 class CigaretteDetector(BaseDetector):
     def __init__(self):
-        super().__init__(os.path.abspath('backend/models/cigarette.pt'))
+        super().__init__(os.path.abspath('models/cigarette.pt'))
         self.model = YOLO(self.model_path)
 
     def detect(self, img: Any) -> List[Dict[str, Any]]:

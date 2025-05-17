@@ -8,10 +8,10 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class BaseDetector(ABC):
-    def __init__(self, model_path: str, device: str = '0'):
+    def __init__(self, model_path: str):
         self.model = None
         self.model_path = model_path
-        self.device = device
+        self.device = DEVICE
 
     @abstractmethod
     def detect(self, img: Any) -> List[Dict[str, Any]]:
