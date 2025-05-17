@@ -47,10 +47,10 @@ opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
 # torch
 filelock==3.18.0
+-f https://download.pytorch.org/whl/cu128
 torch==2.7.0+cu128
 torchvision==0.22.0+cu128
 torchaudio==2.7.0+cu128
--f https://download.pytorch.org/whl/cu128
 # ?
 charset-normalizer==3.4.1
 coloredlogs==15.0.1
