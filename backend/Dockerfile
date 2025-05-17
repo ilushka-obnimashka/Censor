@@ -3,8 +3,9 @@ LABEL authors="ilushka-obnimashka, nikeperl"
 
 # Установка Python 3.12 и pip
 RUN apt-get update && apt-get install -y \
-    python3.12 python3.12-distutils curl && \
-    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 && \
+    python3.12 curl && \
+    python3.12 -m ensurepip && \
+    python3.12 -m pip install --upgrade pip && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /backend
