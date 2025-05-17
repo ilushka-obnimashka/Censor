@@ -29,7 +29,6 @@ def process_video(
         fps = int(cap.get(cv2.CAP_PROP_FPS))
         frames = []
 
-        trackers = cv2.legacy.MultiTracker_create()
         tracked_class_names = []
         frame_count = 0
         tracking_interval = max(fps // 2, 1)
@@ -69,6 +68,7 @@ def process_video(
                             draw_box(frame, x, y, x + w, y + h, class_name)
 
             frames.append(frame)
+            del frame
             frame_count += 1
 
         cap.release()

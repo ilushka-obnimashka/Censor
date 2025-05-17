@@ -64,19 +64,19 @@ def process_file(
             if "bad_words_detector" in models_to_apply:
                 models_to_apply = [m for m in models_to_apply if m != "bad_words_detector"]
 
-            result = process_image(input_path, black_list, models_to_apply, pixelation)
-            save_output(result, output_filename)
+            img_path = process_image(input_path, black_list, models_to_apply, pixelation)
+            os.replace(img_path, output_filename)
 
         elif mime_type.startswith('video'):
             frames, fps = process_video(input_path, black_list, models_to_apply, pixelation)
-            temp_output_filename = TempFilesManager().create_temp_file(f"{orig_name}_censor_video{orig_format}")
-            save_output(frames, temp_output_filename, fps)
+            video_path = TempFilesManager().create_temp_file(f"{orig_name}_censor_video{orig_format}")
+            save_output(frames, video_path, fps)
 
             audio_path = extract_audio(input_path)
             if "bad_words_detector" in models_to_apply:
                 audio_path = process_audio(audio_path)
 
-            add_audio_to_video(audio_path, temp_output_filename, output_filename)
+            add_audio_to_video(audio_path, video_path, output_filename)
 
         elif mime_type.startswith('audio'):
             audio_path = process_audio(input_path)

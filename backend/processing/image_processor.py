@@ -1,8 +1,9 @@
+import os
 import traceback
 from typing import List, Optional
 
 import cv2
-from utils import pixelation_box, draw_box
+from utils import TempFilesManager, pixelation_box, draw_box
 
 from .model import model
 
@@ -22,6 +23,9 @@ def process_image(
     :param pixelation: Apply pixelation if True, else draw boxes.
     """
     try:
+        orig_name, orig_format = os.path.splitext(os.path.basename(input_path))
+        output_path = TempFilesManager().create_temp_file(f"{orig_name}_censor_video{orig_format}")
+
         image = cv2.imread(input_path)
         if image is None:
             raise ValueError(f"Failed to read image from {input_path}")
@@ -35,6 +39,7 @@ def process_image(
                     pixelation_box(image, x1, y1, x2, y2)
                 else:
                     draw_box(image, x1, y1, x2, y2, class_name)
-        return image
+        cv2.imwrite(output_path, image)
+        return output_path
     except Exception as e:
         raise RuntimeError(f"Error processing image: {traceback.format_exc()}")
