@@ -1,0 +1,44 @@
+services:
+  frontend:
+    restart: always
+    image: 'ilushka8obnimashka/frontend.censor:latest'
+    container_name: frontend.censor
+    environment:
+      API_URL: 'http://backend:8000/process/'
+      MINIO_ENDPOINT: 'minio:9000'
+      MINIO_ACCESS_KEY: 'minio'
+      MINIO_SECRET_KEY: 'minio123'
+      MINIO_SECURE: 'False'
+    ports:
+      - '7860:7860'
+
+  backend:
+    restart: always
+    image: 'ilushka8obnimashka/backend.censor:latest'
+    container_name: backend.censor
+    environment:
+      MINIO_ENDPOINT: 'minio:9000'
+      MINIO_ACCESS_KEY: 'minio'
+      MINIO_SECRET_KEY: 'minio123'
+      MINIO_SECURE: 'False'
+      GIGA_CHAT_KEY: 'MDZlMGU2NzItZTBiMC00YTBjLThmN2ItZGE5ZWM4MTE4MGFiOjFkYjA1MDVkLTVmMTgtNDZkOS1iMzI2LTJiOGFlN2U3MWViMQ=='
+    device_requests:
+      - driver: nvidia
+        count: 1
+        capabilities: [ gpu ]
+    ports:
+      - '8000:8000'
+
+  minio:
+    image: 'minio/minio'
+    container_name: minio
+    volumes:
+      - /mnt/data:/data
+    environment:
+      MINIO_ROOT_USER: "minio"
+      MINIO_ROOT_PASSWORD: "minio123"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    command: server /data --console-address ":9001"
+    restart: unless-stopped

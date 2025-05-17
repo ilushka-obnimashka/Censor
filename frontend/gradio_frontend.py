@@ -11,7 +11,7 @@ from utils import minio_client
 API_URL = os.getenv("API_URL")
 
 
-def get_selected_categories():
+def get_selected_categories(checkboxes_main, checkboxes_sub):
     selected = []
 
     for main_cat, checkbox in checkboxes_main.items():
@@ -65,7 +65,7 @@ def update_preview(file_path):
                 gr.update(value=None, visible=False),  # video
                 gr.update(value=None, visible=False),  # image
                 gr.update(value=None, visible=False),  # audio
-                gr.update(value="wait...", visible=True)
+                gr.update(value="Загрузите файл и нажмите кнопку для обработки! 😊", visible=True)
             )
 
         show_video = gr.update(value=None, visible=False)
@@ -87,71 +87,74 @@ def update_preview(file_path):
         print(f"update_preview: {traceback.format_exc()}")
         return None, None, None, None, None
 
+def main():
+    custom_theme = gr.themes.Default(primary_hue="pink")
 
-custom_theme = gr.themes.Default(primary_hue="pink")
+    with gr.Blocks(theme=custom_theme) as demo:
+        gr.Markdown("## ACMS Censor <sub>v0.0.1-alpha</sub>")
 
-with gr.Blocks(theme=custom_theme) as demo:
-    gr.Markdown("## ACMS Censor <sub>v1.0.0-alpha</sub>")
+        with gr.Row(equal_height=True):
+            with gr.Column():
+                input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
+                output_file = gr.File(label="Скачайте результат", visible=False)
+            with gr.Column():
+                output_view_video = gr.Video(label="Просмотр", visible=False)
+                output_view_image = gr.Image(label="Просмотр", visible=False)
+                output_view_audio = gr.Audio(label="Прослушивание", visible=False)
+                status_text = gr.Textbox(label="Статус", value="Загрузите файл и нажмите кнопку для обработки! 😊", visible=True)
 
-    with gr.Row(equal_height=True):
-        with gr.Column():
-            input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
-            output_file = gr.File(label="Скачайте результат", visible=False)
-        with gr.Column():
-            output_view_video = gr.Video(label="Просмотр", visible=False)
-            output_view_image = gr.Image(label="Просмотр", visible=False)
-            output_view_audio = gr.Audio(label="Прослушивание", visible=False)
-            status_text = gr.Textbox(label="Статус", value="wait...", visible=True)
+        with gr.Row(equal_height=True):
+            pixelation_checkbox = gr.Checkbox(label="Пикселизация (иначе — боксы)", value=True)
+            process_button = gr.Button("Обработать")
 
-    with gr.Row(equal_height=True):
-        pixelation_checkbox = gr.Checkbox(label="Пикселизация (иначе — боксы)", value=True)
-        process_button = gr.Button("Обработать")
+        checkboxes_main = {}
+        checkboxes_sub = {}
+        sub_blocks = {}
 
-    checkboxes_main = {}
-    checkboxes_sub = {}
-    sub_blocks = {}
+        # Основные чекбоксы
+        with gr.Row():
+            for cat in CATEGORIES:
+                checkboxes_main[cat] = gr.Checkbox(label=cat)
 
-    # Основные чекбоксы
-    with gr.Row():
-        for cat in CATEGORIES:
-            checkboxes_main[cat] = gr.Checkbox(label=cat)
+        # Подкатегории
+        for cat, sub in CATEGORIES.items():
+            if isinstance(sub, dict) and len(sub) > 1:
+                checkboxes_sub[cat] = {}
+                with gr.Column(visible=False) as block:
+                    gr.Markdown(f"Выберите, что нужно цензурировать в «{cat}»:")
+                    for label in sub:
+                        checkboxes_sub[cat][label] = gr.Checkbox(label=label, value=True)
+                sub_blocks[cat] = block
 
-    # Подкатегории
-    for cat, sub in CATEGORIES.items():
-        if isinstance(sub, dict) and len(sub) > 1:
-            checkboxes_sub[cat] = {}
-            with gr.Column(visible=False) as block:
-                gr.Markdown(f"Выберите, что нужно цензурировать в «{cat}»:")
-                for label in sub:
-                    checkboxes_sub[cat][label] = gr.Checkbox(label=label, value=True)
-            sub_blocks[cat] = block
+        # Функции отображения подблоков
+        for cat in sub_blocks:
+            checkboxes_main[cat].change(
+                lambda checked: gr.update(visible=checked),
+                inputs=checkboxes_main[cat],
+                outputs=sub_blocks[cat]
+            )
 
-    # Функции отображения подблоков
-    for cat in sub_blocks:
-        checkboxes_main[cat].change(
-            lambda checked: gr.update(visible=checked),
-            inputs=checkboxes_main[cat],
-            outputs=sub_blocks[cat]
+        process_button.click(
+            fn=lambda file, pixel, *args: process_via_api(file.name, get_selected_categories(checkboxes_main, checkboxes_sub), pixel),
+            inputs=[input_file, pixelation_checkbox] +
+                   list(checkboxes_main.values()) +
+                   [cb for group in checkboxes_sub.values() for cb in group.values()],
+            outputs=[output_file, status_text]
         )
 
-    process_button.click(
-        fn=lambda file, pixel, *args: process_via_api(file.name, get_selected_categories(), pixel),
-        inputs=[input_file, pixelation_checkbox] +
-               list(checkboxes_main.values()) +
-               [cb for group in checkboxes_sub.values() for cb in group.values()],
-        outputs=[output_file, status_text]
-    )
+        output_file.change(
+            fn=update_preview,
+            inputs=output_file,
+            outputs=[
+                output_file,
+                output_view_video,
+                output_view_image,
+                output_view_audio,
+                status_text
+            ]
+        )
 
-    output_file.change(
-        fn=update_preview,
-        inputs=output_file,
-        outputs=[
-            output_file,
-            output_view_video,
-            output_view_image,
-            output_view_audio,
-            status_text
-        ]
-    )
+    demo.launch(server_name="0.0.0.0", server_port=7860)
 
-demo.launch(server_name="0.0.0.0", server_port=7860)
+if __name__ == "__main__":
+    main()
