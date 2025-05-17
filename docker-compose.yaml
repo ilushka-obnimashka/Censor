@@ -1,8 +1,8 @@
 services:
   frontend:
     restart: always
-    image: 'ilushka8obnimashka/frontend.censor:latest'
-    container_name: frontend.censor
+    image: 'ilushka8obnimashka/censor.frontend:latest'
+    container_name: frontend
     environment:
       API_URL: 'http://backend:8000/process/'
       MINIO_ENDPOINT: 'minio:9000'
@@ -14,8 +14,8 @@ services:
 
   backend:
     restart: always
-    image: 'ilushka8obnimashka/backend.censor:latest'
-    container_name: backend.censor
+    image: 'ilushka8obnimashka/censor.backend:latest'
+    container_name: backend
     environment:
       MINIO_ENDPOINT: 'minio:9000'
       MINIO_ACCESS_KEY: 'minio'
