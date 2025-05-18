@@ -1,5 +1,6 @@
 import mimetypes
 import os
+import shutil
 import traceback
 
 import gradio as gr
@@ -29,6 +30,10 @@ def get_selected_categories(checkboxes_main, checkboxes_sub):
 
 def process_via_api(file_path, selected_classes, pixelation):
     try:
+        file_size = os.path.getsize(file_path)
+        if file_size > 200 * 1024 * 1024:
+            return None, f"Размер файла не должен превышать 200 МБ"
+
         key = minio_client.upload_file('uploads', file_path)
         print(selected_classes)
 
@@ -50,6 +55,8 @@ def process_via_api(file_path, selected_classes, pixelation):
         result_path = minio_client.download_file('uploads', result_key, 'result')
 
         # Удаляем из minio
+        minio_client.delete_file('uploads', key)
+        minio_client.delete_file('uploads', result_key)
 
         return gr.update(value=result_path, visible=True), "Файл обработан!"
 
@@ -95,13 +102,14 @@ def main():
 
         with gr.Row(equal_height=True):
             with gr.Column():
-                input_file = gr.File(label="Загрузите видео, аудио или фото", file_types=["video", "audio", "image"])
+                input_file = gr.File(label="Загрузите видео, аудио или фото (поддержка видео времмено отключена)", file_types=["audio", "image"])
                 output_file = gr.File(label="Скачайте результат", visible=False)
             with gr.Column():
                 output_view_video = gr.Video(label="Просмотр", visible=False)
                 output_view_image = gr.Image(label="Просмотр", visible=False)
                 output_view_audio = gr.Audio(label="Прослушивание", visible=False)
-                status_text = gr.Textbox(label="Статус", value="Загрузите файл и нажмите кнопку для обработки! 😊", visible=True)
+                status_text = gr.Textbox(label="Статус", value="Загрузите файл и нажмите кнопку для обработки! 😊",
+                                         visible=True)
 
         with gr.Row(equal_height=True):
             pixelation_checkbox = gr.Checkbox(label="Пикселизация (иначе — боксы)", value=True)
@@ -135,7 +143,9 @@ def main():
             )
 
         process_button.click(
-            fn=lambda file, pixel, *args: process_via_api(file.name, get_selected_categories(checkboxes_main, checkboxes_sub), pixel),
+            fn=lambda file, pixel, *args: process_via_api(file.name,
+                                                          get_selected_categories(checkboxes_main, checkboxes_sub),
+                                                          pixel),
             inputs=[input_file, pixelation_checkbox] +
                    list(checkboxes_main.values()) +
                    [cb for group in checkboxes_sub.values() for cb in group.values()],
@@ -155,6 +165,7 @@ def main():
         )
 
     demo.launch(server_name="0.0.0.0", server_port=7860)
+
 
 if __name__ == "__main__":
     main()
