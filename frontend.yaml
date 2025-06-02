@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: 23934-censor
+spec:
+  selector:
+    app: frontend
+  ports:
+    - port: 7860
+      targetPort: 7860
+      nodePort: 30080
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: 23934-censor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ilushka8obnimashka/censor.frontend:latest
+          ports:
+            - containerPort: 7860
+          env:
+            - name: API_URL
+              value: "http://backend:8000/process/"
+            - name: MINIO_ENDPOINT
+              value: "minio:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minio"
+            - name: MINIO_SECRET_KEY
+              value: "minio123"
+            - name: MINIO_SECURE
+              value: "False"
