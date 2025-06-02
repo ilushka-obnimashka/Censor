@@ -13,12 +13,12 @@ jobs:
 
   build_and_push:
     id: build_and_push
-    uses: Censor/.github/workflows/publish_docker_images.yml@main
+    uses: ./.github/workflows/publish_docker_images.yml
     secrets: inherit
 
   k8s_update:
     needs: build_and_push
-    uses: Censor/.github/workflows/k8s_update.yml@main
+    uses: ./.github/workflows/k8s_update.yml
     secrets: inherit
     with:
       backend_service: ${{ needs.build_and_push.outputs.backend_service }}
