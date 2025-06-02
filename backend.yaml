@@ -13,8 +13,8 @@ spec:
       labels:
         app: backend
     spec:
+      nodeName: Spartacus
       containers:
-        - nodeName: Spartacus
         - name: backend
           image: ilushka8obnimashka/censor.backend:latest
           ports:
