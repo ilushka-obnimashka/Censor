@@ -16,6 +16,7 @@ jobs:
     secrets: inherit
 
   k8s_update:
+    if: ${{ needs.build_and_push.outputs.backend_service == 'true' || needs.build_and_push.outputs.frontend_service == 'true' }}
     needs: build_and_push
     uses: ./.github/workflows/k8s_update.yml
     secrets: inherit
