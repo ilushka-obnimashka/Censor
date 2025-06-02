@@ -35,9 +35,9 @@ jobs:
           while IFS= read -r file; do
             echo $file
             if [[ $file == backend/* ]]; then
-              echo "::set-output name=backend_service::true"
+              echo "backend_service=true" >> $GITHUB_OUTPUT
             elif [[ $file == frontend/* ]]; then
-              echo "::set-output name=frontend_service::true"
+               echo "frontend_service=true" >> $GITHUB_OUTPUT
             else
               echo "file does not belong to any service"
             fi
