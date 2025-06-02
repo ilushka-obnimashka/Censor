@@ -1,0 +1,43 @@
+name: update frontend and backend in k8s
+
+on:
+  workflow_call:
+    inputs:
+      backend_service:
+        required: true
+        description: 'Information on update docker-image ilushka8obnimashka/censor.backend'
+        type: boolean
+      frontend_service:
+        required: true
+        description: 'Information on update docker-image ilushka8obnimashka/censor.frontend'
+        type: boolean
+
+jobs:
+  update_k8s_services:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decrypt kubeconfig file
+        env:
+          KUBE_CONF_GPG_KEYPHRASE: ${{ secrets.KUBE_CONF_GPG_KEYPHRASE }}
+        run: |
+            mkdir $HOME/secrets
+            gpg --quiet --batch --yes --decrypt --passphrase="$KUBE_CONF_GPG_KEYPHRASE" \
+            --output $HOME/secrets/23934-censor.kube.conf 23934-censor.kube.conf.gpg
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - name: Update backend_service
+        if: ${{ inputs.backend_service == 'true'}}
+        run: |
+            kubectl --kubeconfig=$HOME/secrets/23934-censor.kube.conf rollout restart deployment/backend -n 23934-censor
+
+      - name: Update frontend_service
+        if: ${{ inputs.frontend_service == 'true'}}
+        run: |
+          kubectl --kubeconfig=$HOME/secrets/23934-censor.kube.conf rollout restart deployment/frontend -n 23934-censor
+

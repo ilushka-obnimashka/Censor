@@ -1,8 +1,14 @@
 name: Build and Push Docker Image
 
 on:
-  push:
-    branches: [ master ]
+  workflow_call:
+    outputs:
+      backend_service:
+        description: "Whether backend service was modified"
+        value: ${{ jobs.check.outputs.backend_service }}
+      frontend_service:
+        description: "Whether frontend service was modified"
+        value: ${{ jobs.check.outputs.frontend_service }}
 
 jobs:
   check:

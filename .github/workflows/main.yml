@@ -1,0 +1,25 @@
+name: ACMS Censor
+run-name: SDLC for ACMS Censor 🚀
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Triggered by ${{ github.actor }} with ${{ github.event_name }} event"
+
+  build_and_push:
+    id: build_and_push
+    uses: Censor/.github/workflows/publish_docker_images.yml@main
+    secrets: inherit
+
+  k8s_update:
+    needs: build_and_push
+    uses: Censor/.github/workflows/k8s_update.yml@main
+    secrets: inherit
+    with:
+      backend_service: ${{ needs.build_and_push.outputs.backend_service }}
+      frontend_service: ${{ needs.build_and_push.outputs.frontend_service }}
