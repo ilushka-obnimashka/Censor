@@ -6,11 +6,11 @@ on:
       backend_service:
         required: true
         description: 'Information on update docker-image ilushka8obnimashka/censor.backend'
-        type: boolean
+        type: string
       frontend_service:
         required: true
         description: 'Information on update docker-image ilushka8obnimashka/censor.frontend'
-        type: boolean
+        type: string
 
 jobs:
   update_k8s_services:
