@@ -14,6 +14,7 @@ spec:
         app: backend
     spec:
       containers:
+        - nodeName: Spartacus
         - name: backend
           image: ilushka8obnimashka/censor.backend:latest
           ports:
