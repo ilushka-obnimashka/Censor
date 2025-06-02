@@ -12,7 +12,6 @@ jobs:
       - run: echo "Triggered by ${{ github.actor }} with ${{ github.event_name }} event"
 
   build_and_push:
-    id: build_and_push
     uses: ./.github/workflows/publish_docker_images.yml
     secrets: inherit
 
