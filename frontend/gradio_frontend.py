@@ -97,7 +97,7 @@ def main():
     custom_theme = gr.themes.Default(primary_hue="pink")
 
     with gr.Blocks(theme=custom_theme) as demo:
-        gr.Markdown("## ACMS Censor <sub>v0.0.1-alpha</sub>")
+        gr.Markdown("## ACMS Censor <sub>v0.0.2-alpha</sub>")
 
         with gr.Row(equal_height=True):
             with gr.Column():
