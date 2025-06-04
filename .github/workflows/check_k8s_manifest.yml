@@ -23,6 +23,8 @@ jobs:
 
       - name: check modified
         id: check_files
+        env:
+          KUBE_CONF_GPG_KEYPHRASE: ${{ secrets.KUBE_CONF_GPG_KEYPHRASE }}
         run: |
           echo "backend_manifest=false"  >> "$GITHUB_OUTPUT"
           echo "frontend_manifest=false" >> "$GITHUB_OUTPUT"
