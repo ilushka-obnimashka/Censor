@@ -1,0 +1,86 @@
+name: Apply changed Kubernetes manifests
+#description: |
+  #This reusable workflow checks which Kubernetes manifests were changed (backend, frontend, minio)
+  #and applies only those, using a decrypted kubeconfig for the target cluster.
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    name: Check changed files
+    outputs:
+      backend_manifest: ${{ steps.check_files.outputs.backend_manifest}}
+      frontend_manifest: ${{ steps.check_files.outputs.frontend_manifest}}
+      minio_manifest: ${{ steps.check_files.outputs.minio_manifest}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          lfs: true
+
+      - name: check modified
+        id: check_files
+        run: |
+          echo "backend_manifest=false"  >> "$GITHUB_OUTPUT"
+          echo "frontend_manifest=false" >> "$GITHUB_OUTPUT"
+          echo "minio_manifest=false"    >> "$GITHUB_OUTPUT"
+          
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+          while IFS= read -r file; do
+            echo $file
+            if [[ $file == k8s_manifests/backend.yaml ]]; then
+              echo "backend_manifest=true" >> $GITHUB_OUTPUT
+            elif [[ $file == k8s_manifests/frontend.yaml ]]; then
+               echo "frontend_manifest=true" >> $GITHUB_OUTPUT
+            elif [[ $file == k8s_manifests/minio.yaml ]]; then
+               echo "minio_manifest=true" >> $GITHUB_OUTPUT
+            else
+              echo "file does not belong to any service"
+            fi
+          done < files.txt
+
+  update_k8s_services:
+    needs: check
+    if: needs.check.outputs.backend_manifest == 'true' ||
+        needs.check.outputs.frontend_manifest == 'true' || 
+        needs.check.outputs.minio_manifest == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decrypt kubeconfig file
+        env:
+          KUBE_CONF_GPG_KEYPHRASE: ${{ secrets.KUBE_CONF_GPG_KEYPHRASE }}
+        run: |
+          mkdir $HOME/secrets
+          gpg --quiet --batch --yes --decrypt --passphrase="$KUBE_CONF_GPG_KEYPHRASE" \
+          --output $HOME/secrets/23934-censor.kube.conf 23934-censor.kube.conf.gpg
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - name: Update backend_service
+        if: needs.check.outputs.backend_manifest == 'true'
+        run: |
+          kubectl --kubeconfig=$HOME/secrets/23934-censor.kube.conf apply -f k8s_manifests/backend.yaml -n 23934-censor
+
+      - name: Update frontend_service
+        if: needs.check.outputs.frontend_manifest == 'true'
+        run: |
+          kubectl --kubeconfig=$HOME/secrets/23934-censor.kube.conf apply -f k8s_manifests/frontend.yaml -n 23934-censor
+
+      - name: Update minio_service
+        if: needs.check.outputs.minio_manifest == 'true'
+        run: |
+          kubectl --kubeconfig=$HOME/secrets/23934-censor.kube.conf apply -f k8s_manifests/minio.yaml -n 23934-censor
+
+
