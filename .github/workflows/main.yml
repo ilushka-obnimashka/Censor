@@ -17,7 +17,7 @@ jobs:
 
   k8s_manifest_check:
     needs: build_and_push
-    uses: ./.github/workflows/apply_k8s_updates.yml
+    uses: ./.github/workflows/check_k8s_manifest.yml
 
   k8s_update:
     if: ${{ needs.build_and_push.outputs.backend_service == 'true' || needs.build_and_push.outputs.frontend_service == 'true' }}
