@@ -13,7 +13,7 @@ spec:
       labels:
         app: backend
     spec:
-      nodeName: Spartacus
+      nodeName: spartacus
       containers:
         - name: backend
           image: ilushka8obnimashka/censor.backend:latest
@@ -21,15 +21,30 @@ spec:
             - containerPort: 8000
           env:
             - name: MINIO_ENDPOINT
-              value: "minio:9000"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_ENDPOINT
             - name: MINIO_ACCESS_KEY
-              value: "minio"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_ACCESS_KEY
             - name: MINIO_SECRET_KEY
-              value: "minio123"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_SECRET_KEY
             - name: MINIO_SECURE
-              value: "False"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_SECURE
             - name: GIGA_CHAT_KEY
-              value: "MDZlMGU2NzItZTBiMC00YTBjLThmN2ItZGE5ZWM4MTE4MGFiOjFkYjA1MDVkLTVmMTgtNDZkOS1iMzI2LTJiOGFlN2U3MWViMQ=="
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: GIGA_CHAT_KEY
           resources:
             limits:
               nvidia.com/gpu: 1

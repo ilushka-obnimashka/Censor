@@ -33,13 +33,28 @@ spec:
           ports:
             - containerPort: 7860
           env:
-            - name: API_URL
-              value: "http://backend:8000/process/"
-            - name: MINIO_ENDPOINT
-              value: "minio:9000"
             - name: MINIO_ACCESS_KEY
-              value: "minio"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_ACCESS_KEY
             - name: MINIO_SECRET_KEY
-              value: "minio123"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_SECRET_KEY
+            - name: API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: API_URL
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_ENDPOINT
             - name: MINIO_SECURE
-              value: "False"
+              valueFrom:
+                secretKeyRef:
+                  name: censor-secrets
+                  key: MINIO_SECURE
